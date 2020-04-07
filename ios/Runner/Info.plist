@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!--Gmap Add the following entry, from here, -->
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
+    <!-- to here. -->
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -26,6 +31,17 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location when open.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to location when open.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This is called Privacy - Photo Library Usage Description in the visual editor.</string>
+	<key>NSCameraUsageDescription</key>
+    <string>This is called Privacy - Camera Usage Description in the visual editor.</string>
+	<key>NSMicrophoneUsageDescription</key>
+    <string>This is called Privacy - Microphone Usage Description in the visual editor.</string>
+
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
