@@ -146,7 +146,7 @@ class _AuthenState extends State<Authen> {
   Widget userPassword() {
     return Container(
       child: TextField(
-        controller: TextEditingController()..text = 'nuttapon',
+        controller: TextEditingController()..text = '',
         onChanged: (String string) {
           password = string.trim();
         },
@@ -172,7 +172,7 @@ class _AuthenState extends State<Authen> {
   Widget userForm() {
     return Container(
       child: TextField(
-        controller: TextEditingController()..text = 'nuttapon',
+        controller: TextEditingController()..text = '',
         onChanged: (String string) {
           user = string.trim();
         },
