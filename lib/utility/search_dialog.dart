@@ -91,8 +91,14 @@ class _SearchDialogState extends State<SearchDialog> {
     return SimpleDialog(
       title: Text('Search...'),
       children: <Widget>[
-        drownDownProvince(),
-        drownDownAmphur(),
+        Padding(
+          padding: const EdgeInsets.only(left:5.0),
+          child: drownDownProvince(),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left:5.0),
+          child: drownDownAmphur(),
+        ),
         SimpleDialogOption(
           onPressed: () {
             List<dynamic> list = List();

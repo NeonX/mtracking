@@ -12,6 +12,7 @@ import 'package:mtracking/models/tracking_model.dart';
 import 'package:mtracking/screens/my_service.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -46,6 +47,7 @@ class _UploadFormState extends State<UploadForm> {
 
   List<ActivityModel> listActModel = List();
   List<String> actItems = List();
+  ProgressDialog pr;
 
   // Method
   @override
@@ -330,7 +332,15 @@ class _UploadFormState extends State<UploadForm> {
         if (file == null) {
           normalDialog(context, 'No Image', 'Please add your image');
         } else {
-          insertDataToServer();
+          pr.show();
+
+          Future.delayed(Duration(seconds: 3)).then((value) {
+            insertDataToServer();
+
+            if (pr.isShowing()) {
+              pr.hide();
+            }
+          });
         }
       },
     );
@@ -514,6 +524,22 @@ class _UploadFormState extends State<UploadForm> {
 
   @override
   Widget build(BuildContext context) {
+    pr = ProgressDialog(context, type: ProgressDialogType.Normal);
+
+    pr.style(
+      message: 'Uploading data...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+      progress: 0.0,
+      maxProgress: 100.0,
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
+
     return Scaffold(
         appBar: AppBar(
           title: Text('Upload Form'),

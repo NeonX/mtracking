@@ -21,7 +21,6 @@ class _AuthenState extends State<Authen> {
 
   @override
   void initState() {
-
     checkRemember();
 
     super.initState();
@@ -30,16 +29,15 @@ class _AuthenState extends State<Authen> {
   Future<void> checkRemember() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.containsKey('remember')) {
-
       bool rem = prefs.getBool('remember');
-      if(rem){
+      if (rem) {
         MaterialPageRoute materialPageRoute =
             MaterialPageRoute(builder: (BuildContext context) => MyService());
         Navigator.of(context).pushAndRemoveUntil(materialPageRoute,
             (Route<dynamic> route) {
           return false;
         });
-      }else{
+      } else {
         await prefs.remove('remember');
         await prefs.remove('uname');
         await prefs.remove('accesskey');
@@ -71,7 +69,8 @@ class _AuthenState extends State<Authen> {
 
   Future<void> checkAuthen() async {
     try {
-      String urlAut = 'http://110.77.142.211/MTrackingServer/m_access/verifykey?uname=$user&password=$password';
+      String urlAut =
+          'http://110.77.142.211/MTrackingServer/m_access/verifykey?uname=$user&password=$password';
 
       await Dio().post(urlAut).then((response) {
         print('Response = $response');
@@ -79,7 +78,6 @@ class _AuthenState extends State<Authen> {
         if (response.toString() == 'null') {
           normalDialog(context, 'Password False', 'Please try again');
         } else {
-          
           Map<String, dynamic> map = json.decode(response.toString());
 
           bool success = map['SUCCESS'];
@@ -95,18 +93,20 @@ class _AuthenState extends State<Authen> {
 
             MaterialPageRoute materialPageRoute = MaterialPageRoute(
                 builder: (BuildContext context) => MyService());
+
+            Navigator.push(context, materialPageRoute);
+            /*
             Navigator.of(context).pushAndRemoveUntil(materialPageRoute,
                 (Route<dynamic> route) {
               return false;
             });
+            */
           } else {
             normalDialog(context, 'Login fail', 'Please try again');
           }
         }
-
       });
     } catch (e) {}
-
   }
 
   Future<void> setPref(String key, String value) async {

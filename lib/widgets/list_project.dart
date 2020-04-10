@@ -7,29 +7,29 @@ import 'package:mtracking/models/amphur.dart';
 import 'package:mtracking/models/project_model.dart';
 import 'package:mtracking/models/province.dart';
 import 'package:mtracking/screens/upload_form.dart';
+import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/search_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ListProject extends StatefulWidget {
-
   @override
   _ListProjectState createState() => _ListProjectState();
-
-
 }
 
 class _ListProjectState extends State<ListProject> {
   // Field
   List<ProjectModel> listProjectModel = List();
-  String accesskey, provname, amphname;
+  String accesskey, provname, amphname, provdisp, amphdisp;
 
   // Method
-
 
   @override
   void initState() {
     super.initState();
     getKey();
+
+    provdisp = 'ทั้งหมด';
+    amphdisp = 'ทั้งหมด';
   }
 
   Future<void> getKey() async {
@@ -46,7 +46,7 @@ class _ListProjectState extends State<ListProject> {
     if (listProjectModel.length > 0) {
       listProjectModel.clear();
     }
-    
+
     String urlProjList =
         "http://110.77.142.211/MTrackingServer/projlist.jsp?onlyprg=t&provname=$provname&amphname=$amphname&accesskey=$accesskey";
 
@@ -62,49 +62,69 @@ class _ListProjectState extends State<ListProject> {
 
       Map<String, dynamic> proj_ls = resJs['PROJ'];
 
-      proj_ls.forEach((k, v) {
-        //print('$k: $v');
+      if (proj_ls.isNotEmpty) {
+        proj_ls.forEach((k, v) {
+          //print('$k: $v');
 
-        ProjectModel projectModel = ProjectModel.fromJlist(k, v);
+          ProjectModel projectModel = ProjectModel.fromJlist(k, v);
 
-        //print(projectModel.prjId + ' ==>> ' + projectModel.prjName);
-        setState(() {
-          listProjectModel.add(projectModel);
+          //print(projectModel.prjId + ' ==>> ' + projectModel.prjName);
+          setState(() {
+            listProjectModel.add(projectModel);
+          });
         });
+      } else {
+        setState(() {
+          listProjectModel.clear();
+        });
+      }
+    } else {
+      setState(() {
+        listProjectModel.clear();
       });
-
-      //print('End');
     }
   }
 
   Future<void> refresh(Province province, Amphur amphur) async {
-    provname = province!= null ? province.pName : null;
-    amphname = amphur  != null ? amphur.aName   : null;
+    provname = province != null && province.pId != '0' ? province.pName : null;
+    amphname = amphur != null && amphur.aId != '0' ? amphur.aName : null;
+
+    setState(() {
+      provdisp = province != null ? province.pName : 'ทั้งหมด';
+      amphdisp = amphur != null ? amphur.aName : 'ทั้งหมด';
+    });
+
     readData();
   }
 
   Widget showListView() {
-    return ListView.builder(
-      itemBuilder: (BuildContext buildContext, int index) {
-        return GestureDetector(
-            child: Row(
-              children: <Widget>[
-                showImage(index),
-                showText(index),
-              ],
+    return listProjectModel.isEmpty
+        ? Center(child: Text('No data'))
+        : Padding(
+            padding: const EdgeInsets.only(top: 25.0),
+            child: ListView.builder(
+              itemBuilder: (BuildContext buildContext, int index) {
+                return GestureDetector(
+                    child: Row(
+                      children: <Widget>[
+                        showImage(index),
+                        showText(index),
+                      ],
+                    ),
+                    onTap: () {
+                      ProjectModel projectModel = listProjectModel[index];
+                      // Scaffold.of(context).showSnackBar(SnackBar(content: Text(projectModel.prjName)));
+                      MaterialPageRoute materialPageRoute = MaterialPageRoute(
+                          builder: (BuildContext buildContext) {
+                        return UploadForm(projectModel.prjId,
+                            projectModel.prjName, projectModel.jobTypeId);
+                      });
+                      Navigator.of(context).push(materialPageRoute);
+                    });
+              },
+              itemCount: listProjectModel.length,
             ),
-            onTap: () {
-              ProjectModel projectModel = listProjectModel[index];
-              // Scaffold.of(context).showSnackBar(SnackBar(content: Text(projectModel.prjName)));
-              MaterialPageRoute materialPageRoute =
-                  MaterialPageRoute(builder: (BuildContext buildContext) {
-                return UploadForm(projectModel.prjId, projectModel.prjName, projectModel.jobTypeId);
-              });
-              Navigator.of(context).push(materialPageRoute);
-            });
-      },
-      itemCount: listProjectModel.length,
-    );
+          );
   }
 
   Widget showImage(int index) {
@@ -161,11 +181,43 @@ class _ListProjectState extends State<ListProject> {
     );
   }
 
+  Widget showSearchData() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 10.0, top: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Text('ค้นหา >> ',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: MyStyle().txtColor,
+              )),
+          Text('จังหวัด : $provdisp',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue.shade500,
+              )),
+          Text(' >> ',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: MyStyle().txtColor,
+              )),    
+          Text('อำเภอ : $amphdisp',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.green.shade500,
+              )),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
         showListView(),
+        showSearchData(),
         searchButton(),
       ],
     );

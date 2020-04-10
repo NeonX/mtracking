@@ -31,7 +31,10 @@ class _ListPendingState extends State<ListPending> {
 
   Future<void> readData() async {
     if (listPending.length > 0) {
-      listPending.clear();
+      setState(() {
+        listPending.clear();
+        _selecteItems.clear();
+      });
     }
 
     TrackingModel().querySql().then((list) {
@@ -41,6 +44,8 @@ class _ListPendingState extends State<ListPending> {
         });
       });
     });
+
+    print('list size = ${listPending.length}');
   }
 
   Future<void> getKey() async {
@@ -159,7 +164,6 @@ class _ListPendingState extends State<ListPending> {
                 child: Icon(Icons.cloud_upload),
                 onPressed: () {
                   if (_selecteItems.length > 0) {
-
                     pr.show();
 
                     String upid = '';
@@ -167,8 +171,6 @@ class _ListPendingState extends State<ListPending> {
                       _selecteItems.forEach((track) {
                         upid += track.tid + ',';
                         insertDataToServer(track);
-
-          
                       });
 
                       if (pr.isShowing()) {
@@ -190,7 +192,6 @@ class _ListPendingState extends State<ListPending> {
   }
 
   Future<void> insertDataToServer(TrackingModel track) async {
-
     String url = 'http://110.77.142.211/MTrackingServer/m_upload/saveimg';
 
     var tstamp = int.parse(track.snaptime);
@@ -223,18 +224,16 @@ class _ListPendingState extends State<ListPending> {
 
         Map<String, dynamic> res = json.decode(response.toString());
 
-        if(res['SUCCESS']==1){
+        if (res['SUCCESS'] == 1) {
           int id = int.parse(track.tid);
           TrackingModel().delete(id);
+          setState(() {
+            _selecteItems.remove(track);
+          });
           readData();
         }
-        
       });
-
-
-    } catch (e) { 
-
-    }
+    } catch (e) {}
   }
 
   @override

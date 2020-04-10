@@ -84,16 +84,20 @@ class _MapPointsState extends State<MapPoints> {
           setState(() {
             listPin.clear();
             list.clear();
-            findLocationData();
+            
           });
+
+          findLocationData();
         }
 
       }else{
         setState(() {
             listPin.clear();
             list.clear();
-            findLocationData();
+
           });
+
+          findLocationData();
       }
 
       //print('End ${listPin.length}' );
