@@ -1,61 +1,55 @@
-import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart';
-import 'package:mtracking/models/activity_model.dart';
+import 'package:mtracking/models/dmg_cate_model.dart';
 import 'package:mtracking/models/tracking_model.dart';
 import 'package:mtracking/screens/my_service.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 
-class UploadForm extends StatefulWidget {
+class SurveyRdDmgDrr extends StatefulWidget {
   final String projName;
   final String projId;
   final String jobTypeId;
 
   @override
-  _UploadFormState createState() => _UploadFormState();
+  _SurveyRdDmgDrrState createState() => _SurveyRdDmgDrrState();
 
-  // UploadForm({Key key, this.projName}) : super (key : key);
-  UploadForm(this.projId, this.projName, this.jobTypeId);
+  SurveyRdDmgDrr(this.projId, this.projName, this.jobTypeId);
 }
 
-class _UploadFormState extends State<UploadForm> {
-  // Field
-  final dataKey = new GlobalKey();
+class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
 
-  ActivityModel activityModel;
-  ActivityModel actSelected;
-  String accesskey;
+  final dataKey = new GlobalKey();
   File file;
-  String km, jobDetail, imgCaption;
-  LatLng latLng;
+  String kmFrom, kmTo, imgCaption;
+  String accesskey;
+  String dmgLevelSelected = 'ไม่ระบุ';
   double lat, lng;
   var txtCtrlLat = new TextEditingController();
   var txtCtrlLng = new TextEditingController();
+  ProgressDialog pr;
+  LatLng latLng;
+
+  List<DmgCategoryModel> listDmgCateModel = List();
+  DmgCategoryModel dmgSelected;
 
   ScrollController _controller;
-  FocusNode _focusKm = FocusNode();
-  FocusNode _focusJobDetail = FocusNode();
+  FocusNode _focusKmFrom = FocusNode();
+  FocusNode _focusKmTo = FocusNode();
   FocusNode _focusCaption = FocusNode();
 
-  List<ActivityModel> listActModel = List();
-  List<String> actItems = List();
-  ProgressDialog pr;
-
-  // Method
   @override
   void initState() {
-    _controller = ScrollController();
     super.initState();
     getKey();
     findLatLng();
@@ -69,36 +63,25 @@ class _UploadFormState extends State<UploadForm> {
       txtCtrlLat.text = lat.toString();
       txtCtrlLng.text = lng.toString();
     });
-
-    // Duration duration = Duration(seconds: 10);
-    // await Timer(duration, () {
-    //   setState(() {
-    //     lat = 13.685514;
-    //     lng = 100.567656;
-    //   });
-    // });
   }
 
   Future<void> getKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       accesskey = prefs.getString('accesskey');
-      //print('Key = $accesskey');
-
-      readActivity();
+      loadDmgCate();
     });
   }
 
-  Future<void> readActivity() async {
-    if (listActModel.length > 0) {
-      listActModel.clear();
+  Future<void> loadDmgCate() async {
+    if (listDmgCateModel.length > 0) {
+      listDmgCateModel.clear();
     }
 
-    String urlActList =
-        "http://110.77.142.211/MTrackingServer/actlist.jsp?pid=${widget.projId}&accesskey=${accesskey}";
+    String urlDmgList =
+        "http://110.77.142.211/MTrackingServer/rd_dmg_cate_drr.jsp?accesskey=${accesskey}";
 
-    // print('URL = $urlActList');
-    Response response = await Dio().get(urlActList);
+    Response response = await Dio().get(urlDmgList);
 
     if (response != null) {
       String result = response.data;
@@ -106,19 +89,18 @@ class _UploadFormState extends State<UploadForm> {
       var resJs = json.decode(result);
       // print('Result = $resJs');
 
-      Map<String, dynamic> act_ls = resJs['ACTIVITY'];
+      Map<String, dynamic> dmgList = resJs['RD_DAMAGE'];
 
-      act_ls.forEach((k, v) {
+      dmgList.forEach((k, v) {
         // print('$k: $v');
 
-        ActivityModel activityModel = ActivityModel.fromJlist(k, v);
+        DmgCategoryModel dmgCateModel = DmgCategoryModel.fromJlist(k, v);
 
-        // print(activityModel.actId + ' ==>> ' + activityModel.actName);
         setState(() {
-          listActModel.add(activityModel);
+          listDmgCateModel.add(dmgCateModel);
         });
       });
-      actSelected = listActModel[0];
+      dmgSelected = listDmgCateModel[0];
       //print('End');
     }
   }
@@ -149,47 +131,68 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
-  Widget activityList() {
+  Widget dmgCategoryList() {
     return Container(
         width: 300.0,
         child: DropdownButton(
-            items: listActModel
-                .map<DropdownMenuItem<ActivityModel>>((ActivityModel act) {
-              return DropdownMenuItem<ActivityModel>(
-                value: act,
-                child: Text(act.actName),
+            items: listDmgCateModel.map<DropdownMenuItem<DmgCategoryModel>>(
+                (DmgCategoryModel dmg) {
+              return DropdownMenuItem<DmgCategoryModel>(
+                value: dmg,
+                child: Text(dmg.dmgCateName),
               );
             }).toList(),
-            value: actSelected,
-            onChanged: (ActivityModel newVal) {
+            value: dmgSelected,
+            onChanged: (DmgCategoryModel newVal) {
               setState(() {
-                actSelected = newVal;
+                dmgSelected = newVal;
               });
             }));
   }
 
-  Widget kmInputForm() {
+  Widget dmgLevelList() {
     return Container(
-      width: 300.0,
+        width: 300.0,
+        child: DropdownButton(
+            items: <String>['ไม่ระบุ', 'เสียหายเบา', 'เสียหายหนัก']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            value: dmgLevelSelected,
+            onChanged: (String newVal) {
+              setState(() {
+                dmgLevelSelected = newVal;
+              });
+            }));
+  }
+
+  Widget fromKmForm() {
+    return Container(
+      width: 100.0,
       child: TextField(
-        focusNode: _focusKm,
+        focusNode: _focusKmFrom,
         onChanged: (String string) {
-          km = string.trim();
+          kmFrom = string.trim();
         },
-        decoration: InputDecoration(hintText: 'ตำแหน่ง กม. : '),
+        decoration: InputDecoration(
+            hintText: 'กม.ที่', filled: true, fillColor: Colors.grey.shade200),
       ),
     );
   }
 
-  Widget jobDetailForm() {
+  Widget toKmForm() {
     return Container(
-      width: 300.0,
+      width: 100.0,
       child: TextField(
-        focusNode: _focusJobDetail,
+        focusNode: _focusKmTo,
         onChanged: (String string) {
-          jobDetail = string.trim();
+          kmTo = string.trim();
         },
-        decoration: InputDecoration(hintText: 'รายละเอียดงาน : '),
+        decoration: InputDecoration(
+            hintText: 'กม.ที่', filled: true, fillColor: Colors.grey.shade200),
       ),
     );
   }
@@ -205,8 +208,8 @@ class _UploadFormState extends State<UploadForm> {
   }
 
   void clearFocus() {
-    _focusKm.unfocus();
-    _focusJobDetail.unfocus();
+    _focusKmFrom.unfocus();
+    _focusKmTo.unfocus();
     _focusCaption.unfocus();
   }
 
@@ -375,27 +378,31 @@ class _UploadFormState extends State<UploadForm> {
       map['uploaded'] = UploadFileInfo(file, fileName);
       map['userkey'] = accesskey;
       map['pid'] = widget.projId;
-      map['actid'] = actSelected.actId;
       map['jobid'] = widget.jobTypeId;
-      map['sta'] = km;
-      map['detail'] = jobDetail; //job detail
+      map['sta'] = kmFrom;
       map['caption'] = imgCaption; //image caption
       map['lat'] = lat.toString();
       map['long'] = lng.toString();
       map['snaptime'] = '$snaptime';
 
-      /*
-      print("userkey : " + map['userkey']);
-      print("pid : " + map['pid']);
-      print("actid : " + map['actid']);
-      print("jobid : " + map['jobid']);
-      print("sta : " + map['sta']);
-      print("detail : " + map['detail']);
-      print("caption : " + map['caption']);
-      print("lat : " + map['lat']);
-      print("long : " + map['long']);
-      print("snaptime : " + map['snaptime']);
-      */
+      map['sta_to'] = kmTo;
+      map['dmgcatdrrid'] = dmgSelected.dmgCateId;
+      map['dmgcatdrr_name'] = dmgSelected.dmgCateName;
+      map['dmgcatdrr_level'] = dmgLevelSelected;
+      map['dmgcatdrr_othername'] = '';
+
+      // print("userkey : " + map['userkey']);
+      // print("pid : " + map['pid']);
+      // print("jobid : " + map['jobid']);
+      // print("dmgcatdrrid : " + map['dmgcatdrrid']);
+      // print("dmgcatdrr_name : " + map['dmgcatdrr_name']);
+      // print("dmgcatdrr_level : " + map['dmgcatdrr_level']);
+      // print("sta : " + map['sta']);
+      // print("sta_to : " + map['sta_to']);
+      // print("caption : " + map['caption']);
+      // print("lat : " + map['lat']);
+      // print("long : " + map['long']);
+      // print("snaptime : " + map['snaptime']);
 
       FormData formData = FormData.from(map);
       await Dio().post(url, data: formData).then((response) {
@@ -436,14 +443,17 @@ class _UploadFormState extends State<UploadForm> {
 
       map[TrackingModel.columnPjId] = widget.projId;
       map[TrackingModel.columnPjName] = widget.projName;
-      map[TrackingModel.columnAcId] = actSelected.actId;
       map[TrackingModel.columnJtId] = widget.jobTypeId;
-      map[TrackingModel.columnSta] = km;
-      map[TrackingModel.columnJdet] = jobDetail; //job detail
+      map[TrackingModel.columnSta] = kmFrom;
+      map[TrackingModel.columnStaTo] = kmTo;
       map[TrackingModel.columnCapt] = imgCaption; //image caption
       map[TrackingModel.columnLat] = lat.toString();
       map[TrackingModel.columnLon] = lng.toString();
       map[TrackingModel.columnSnapt] = '$snaptime';
+      map[TrackingModel.columnDmgCateDrrId] = dmgSelected.dmgCateId.toString();
+      map[TrackingModel.columnDmgCateDrrName] = dmgSelected.dmgCateName;
+      map[TrackingModel.columnDmgCateDrrLevel] = dmgLevelSelected;
+      map[TrackingModel.columnDmgCateDrrOtherName] = '';
 
       TrackingModel().insert(map);
 
@@ -509,9 +519,44 @@ class _UploadFormState extends State<UploadForm> {
           SizedBox(
             height: 20.0,
           ),
-          activityList(),
-          kmInputForm(),
-          jobDetailForm(),
+          Container(
+            width: 300,
+            child: Text(
+              'ประเภทความเสียหาย : ',
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            ),
+          ),
+          dmgCategoryList(),
+          SizedBox(
+            height: 20.0,
+          ),
+          Container(
+            width: 300,
+            child: Text(
+              'ลักษณะความเสียหาย : ',
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            ),
+          ),
+          dmgLevelList(),
+          SizedBox(
+            height: 20.0,
+          ),
+          Container(
+            width: 300,
+            child: Row(
+              children: <Widget>[
+                fromKmForm(),
+                SizedBox(
+                  width: 10.0,
+                ),
+                Text('ถึง', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
+                SizedBox(
+                  width: 10.0,
+                ),
+                toKmForm()
+              ],
+            ),
+          ),
           showPhoto(),
           showButton(),
           SizedBox(
@@ -539,7 +584,6 @@ class _UploadFormState extends State<UploadForm> {
   @override
   Widget build(BuildContext context) {
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
-
     pr.style(
       message: 'Uploading data...',
       borderRadius: 10.0,
@@ -556,7 +600,10 @@ class _UploadFormState extends State<UploadForm> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('รายงานความก้าวหน้าโครงการก่อสร้าง',style: TextStyle(fontSize: 16.0),),
+          title: Text(
+            'ตรวจสอบสภาพถนน ทช.',
+            style: TextStyle(fontSize: 16.0),
+          ),
         ),
         body: Container(
           child: Center(

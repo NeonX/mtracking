@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mtracking/screens/my_service.dart';
+import 'package:mtracking/screens/register.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,6 +129,11 @@ class _AuthenState extends State<Authen> {
       ),
       onPressed: () {
         print('You Click Sign Up');
+        MaterialPageRoute materialPageRoute =
+            MaterialPageRoute(builder: (BuildContext buildContext) {
+          return Register();
+        });
+        Navigator.of(context).push(materialPageRoute);
       },
     );
   }

@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mtracking/models/amphur.dart';
 import 'package:mtracking/models/project_model.dart';
 import 'package:mtracking/models/province.dart';
+import 'package:mtracking/screens/fm_survey_rd_dmg_doh.dart';
+import 'package:mtracking/screens/fm_survey_rd_dmg_drr.dart';
 import 'package:mtracking/screens/upload_form.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/search_dialog.dart';
@@ -58,7 +60,7 @@ class _ListProjectState extends State<ListProject> {
       result = result.substring(0, result.indexOf('<!'));
 
       var resJs = json.decode(result);
-      print('Result = $resJs');
+      // print('Result = $resJs');
 
       Map<String, dynamic> proj_ls = resJs['PROJ'];
 
@@ -116,8 +118,23 @@ class _ListProjectState extends State<ListProject> {
                       // Scaffold.of(context).showSnackBar(SnackBar(content: Text(projectModel.prjName)));
                       MaterialPageRoute materialPageRoute = MaterialPageRoute(
                           builder: (BuildContext buildContext) {
-                        return UploadForm(projectModel.prjId,
-                            projectModel.prjName, projectModel.jobTypeId);
+                        if(projectModel.jobTypeId.compareTo('1') == 0){
+
+                            return UploadForm(projectModel.prjId,
+                              projectModel.prjName, projectModel.jobTypeId);
+
+                        }else if(projectModel.jobTypeId.compareTo('2') == 0){
+
+                            return SurveyRdDmgDoh(projectModel.prjId,
+                              projectModel.prjName, projectModel.jobTypeId); 
+
+                        }else if(projectModel.jobTypeId.compareTo('8') == 0){
+
+                            return SurveyRdDmgDrr(projectModel.prjId,
+                              projectModel.prjName, projectModel.jobTypeId);
+
+                        }
+                        
                       });
                       Navigator.of(context).push(materialPageRoute);
                     });

@@ -10,6 +10,7 @@ class TrackingModel {
   static final columnAcId = 'act_id';
   static final columnJtId = 'job_type_id';
   static final columnSta = 'sta';
+  static final columnStaTo = 'sta_to';
   static final columnLat = 'latitude';
   static final columnLon = 'longitude';
   static final columnImgPath = 'img_path';
@@ -17,9 +18,29 @@ class TrackingModel {
   static final columnCapt = 'description';
   static final columnSnapt = 'snap_time';
 
-  String tid, projId, projName, actId, jobTypeId, sta, lat, lon, imgPath, jobDetail, caption, snaptime;
-  bool checked = false;
+  static final columnDmgCateDrrId = 'dmg_cate_drr_id';
+  static final columnDmgCateDrrName = 'dmg_cate_drr_name';
+  static final columnDmgCateDrrLevel = 'dmg_cate_drr_level';
+  static final columnDmgCateDrrOtherName = 'dmg_cate_drr_other_name';
 
+  String tid,
+      projId,
+      projName,
+      actId,
+      jobTypeId,
+      sta,
+      staTo,
+      lat,
+      lon,
+      imgPath,
+      jobDetail,
+      caption,
+      snaptime,
+      dmgCateDrrId,
+      dmgCateDrrName,
+      dmgCateDrrLevel,
+      dmgCateDrrOtherName;
+  bool checked = false;
 
   final dbHelper = DatabaseHelper.instance;
 
@@ -30,12 +51,17 @@ class TrackingModel {
       this.actId,
       this.jobTypeId,
       this.sta,
+      this.staTo,
       this.lat,
       this.lon,
       this.imgPath,
       this.jobDetail,
       this.caption,
-      this.snaptime});
+      this.snaptime,
+      this.dmgCateDrrId,
+      this.dmgCateDrrName,
+      this.dmgCateDrrLevel,
+      this.dmgCateDrrOtherName});
 
   TrackingModel.fromMap(Map<String, dynamic> map) {
     tid = map[columnId].toString();
@@ -44,36 +70,38 @@ class TrackingModel {
     actId = map[columnAcId].toString();
     jobTypeId = map[columnJtId].toString();
     sta = map[columnSta];
+    staTo = map[columnStaTo];
     lat = map[columnLat];
     lon = map[columnLon];
     imgPath = map[columnImgPath];
     jobDetail = map[columnJdet];
     caption = map[columnCapt];
     snaptime = map[columnSnapt].toString();
+    dmgCateDrrId = map[columnDmgCateDrrId].toString();
+    dmgCateDrrName = map[columnDmgCateDrrName];
+    dmgCateDrrLevel = map[columnDmgCateDrrLevel];
+    dmgCateDrrOtherName = map[columnDmgCateDrrOtherName];
     // more
   }
 
   void insert(Map<String, dynamic> row) async {
-    
     final id = await dbHelper.insert(table, row);
     print('inserted tracking row id: $id');
   }
 
   Future<List<TrackingModel>> querySql() async {
-
     Database db = await dbHelper.database;
-    final allRows = await db.rawQuery('SELECT * FROM $table ORDER BY $columnId ASC');
+    final allRows =
+        await db.rawQuery('SELECT * FROM $table ORDER BY $columnId ASC');
 
     List<TrackingModel> list = List();
     allRows.forEach((row) => list.add(TrackingModel.fromMap(row)));
 
-
     return list;
   }
 
-    Future<int> delete(int id) async {
+  Future<int> delete(int id) async {
     Database db = await dbHelper.database;
     return await db.delete(table, where: '$columnId = ?', whereArgs: [id]);
   }
-
 }

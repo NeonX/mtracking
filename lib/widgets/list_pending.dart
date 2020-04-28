@@ -127,7 +127,7 @@ class _ListPendingState extends State<ListPending> {
 
   Widget showText(int index) {
     var tstamp = int.parse(listPending[index].snaptime);
-    var date = new DateTime.fromMicrosecondsSinceEpoch(tstamp);
+    var date = new DateTime.fromMillisecondsSinceEpoch(tstamp);
     var formatter = new DateFormat('dd-MM-yyyy HH:mm:ss');
 
     String formatted = formatter.format(date);
@@ -163,25 +163,7 @@ class _ListPendingState extends State<ListPending> {
               child: FloatingActionButton(
                 child: Icon(Icons.cloud_upload),
                 onPressed: () {
-                  if (_selecteItems.length > 0) {
-                    pr.show();
-
-                    String upid = '';
-                    Future.delayed(Duration(seconds: 3)).then((value) {
-                      _selecteItems.forEach((track) {
-                        upid += track.tid + ',';
-                        insertDataToServer(track);
-                      });
-
-                      if (pr.isShowing()) {
-                        pr.hide();
-                      }
-                    });
-                    //normalDialog(context, 'Upload', 'Selected Id = $upid');
-
-                  } else {
-                    normalDialog(context, 'Upload', 'No data was selected');
-                  }
+                  uploadDataToServer();
                 },
               ),
             ),
@@ -191,11 +173,31 @@ class _ListPendingState extends State<ListPending> {
     );
   }
 
-  Future<void> insertDataToServer(TrackingModel track) async {
+  Future<void> uploadDataToServer() async {
+    if (_selecteItems.length > 0) {
+      pr.show();
+
+      await Future.forEach(_selecteItems, (track) async {
+        await insertDataToServer(track);
+        print('Upload tracking_id = ${track.tid}');
+      });
+      print('Upload finish!!');
+
+      if (pr.isShowing()) {
+        readData();
+        pr.hide();
+      }
+
+    } else {
+      normalDialog(context, 'Upload', 'No data was selected');
+    }
+  }
+
+  Future<bool> insertDataToServer(TrackingModel track) async {
     String url = 'http://110.77.142.211/MTrackingServer/m_upload/saveimg';
 
     var tstamp = int.parse(track.snaptime);
-    var tsdate = new DateTime.fromMicrosecondsSinceEpoch(tstamp);
+    var tsdate = new DateTime.fromMillisecondsSinceEpoch(tstamp);
 
     var formatter = new DateFormat('yyyy-MM-dd_Hms');
     String formatted = formatter.format(tsdate);
@@ -218,6 +220,12 @@ class _ListPendingState extends State<ListPending> {
       map['long'] = track.lon;
       map['snaptime'] = track.snaptime;
 
+      //--survey road damage drr
+      map['sta_to'] = track.staTo;
+      map['dmgcatdrrid'] = track.dmgCateDrrId;
+      map['dmgcatdrr_name'] = track.dmgCateDrrName;
+      map['dmgcatdrr_level'] = track.dmgCateDrrLevel;
+
       FormData formData = FormData.from(map);
       await Dio().post(url, data: formData).then((response) {
         print('response : $response');
@@ -227,13 +235,14 @@ class _ListPendingState extends State<ListPending> {
         if (res['SUCCESS'] == 1) {
           int id = int.parse(track.tid);
           TrackingModel().delete(id);
-          setState(() {
-            _selecteItems.remove(track);
-          });
-          readData();
+
+          return true;
         }
       });
-    } catch (e) {}
+    } catch (e) {
+      
+    }
+     return false;
   }
 
   @override
