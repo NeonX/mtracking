@@ -35,10 +35,13 @@ class Province {
 
   Future<List<Province>> query() async {
 
+    
+
     Database db = await dbHelper.database;
     final allRows = await db.query(table);
 
     List<Province> listProv = List();
+    
     allRows.forEach((row) => listProv.add(Province.fromJson(row)));
 
     //listProv.forEach((o) => print('==>> ' + o.pId + ' x ' + o.pName));
@@ -49,10 +52,16 @@ class Province {
 
   Future<List<Province>> querySql() async {
 
+    Map<String, dynamic> map = new Map();
+    map[columnId] = '0';
+    map[columnName] = 'ทั้งหมด';
+
     Database db = await dbHelper.database;
     final allRows = await db.rawQuery('SELECT * FROM $table ORDER BY $columnName ASC');
 
     List<Province> listProv = List();
+    listProv.add(Province.fromJson(map));
+
     allRows.forEach((row) => listProv.add(Province.fromJson(row)));
 
 

@@ -48,6 +48,10 @@ class Amphur {
 
   Future<List<Amphur>> queryByPid(String pid) async {
 
+    Map<String, dynamic> map = new Map();
+    map[columnId] = '0';
+    map[columnName] = 'ทั้งหมด';
+
     String sql = 'SELECT * FROM amphur ';
     if(pid != null){
       sql += ' WHERE prov_id = $pid';
@@ -58,6 +62,7 @@ class Amphur {
     final allRows = await db.rawQuery(sql);
 
     List<Amphur> listAmp = List();
+    listAmp.add(Amphur.fromJson(map));
     allRows.forEach((row) => listAmp.add(Amphur.fromJson(row)));
 
     return listAmp;

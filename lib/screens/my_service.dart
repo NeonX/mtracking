@@ -80,7 +80,6 @@ class _MyServiceState extends State<MyService> {
 
               Navigator.pop(context);
               //normalDialog(context, 'Drawer Menu', 'Click menu PROJECT LIST');
-
             },
           ),
           ListTile(
@@ -108,7 +107,7 @@ class _MyServiceState extends State<MyService> {
           ),
           ListTile(
             leading: Icon(Icons.exit_to_app),
-            title: Text('Logout'), 
+            title: Text('Logout'),
             onTap: () {
               confirmLogout();
             },
@@ -199,21 +198,27 @@ class _MyServiceState extends State<MyService> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: cusSearchBar,
-        backgroundColor: MyStyle().barColor,
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
-        ],
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: cusSearchBar,
+          backgroundColor: MyStyle().barColor,
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.more_vert),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        drawer: showDrawer(),
+        body: currentWidget,
       ),
-      drawer: showDrawer(),
-      body: currentWidget,
     );
   }
 }
