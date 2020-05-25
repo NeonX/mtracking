@@ -194,7 +194,7 @@ class _ListPendingState extends State<ListPending> {
   }
 
   Future<bool> insertDataToServer(TrackingModel track) async {
-    String url = 'http://110.77.142.211/MTrackingServer/m_upload/saveimg';
+    String url = 'https://110.77.142.211/MTrackingServerVM10/m_upload/saveimg';
 
     var tstamp = int.parse(track.snaptime);
     var tsdate = new DateTime.fromMillisecondsSinceEpoch(tstamp);
@@ -227,8 +227,15 @@ class _ListPendingState extends State<ListPending> {
       map['dmgcatdrr_level'] = track.dmgCateDrrLevel;
 
       FormData formData = FormData.from(map);
-      await Dio().post(url, data: formData).then((response) {
-        print('response : $response');
+
+      Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+      await dio.post(url, data: formData).then((response) {
+        // print('response : $response');
 
         Map<String, dynamic> res = json.decode(response.toString());
 

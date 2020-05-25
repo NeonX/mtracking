@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -53,9 +54,15 @@ class _MapPointsState extends State<MapPoints> {
     }
 
     String urlPinList =
-        'http://110.77.142.211/MTrackingServer/proj_img_list.jsp?pid=$projId'; //"http://winti.pte.co.th/sample_map.json";
+        'https://110.77.142.211/MTrackingServerVM10/proj_img_list.jsp?pid=$projId'; //"http://winti.pte.co.th/sample_map.json";
 
-    Response response = await Dio().get(urlPinList);
+    Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+    Response response = await dio.get(urlPinList);
 
     if (response != null) {
       var resJs = json.decode(response.data);

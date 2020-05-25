@@ -1,9 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mtracking/utility/my_constant.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
 
@@ -212,6 +212,12 @@ class _RegisterState extends State<Register> {
             password == null ||
             password.isEmpty) {
           normalDialog(context, 'No Info', 'Please fill your information');
+        }else if(password != confPwd){
+          setState(() {
+            password = null;
+            confPwd = null;
+          });
+          normalDialog(context, 'Confirm password', 'Please check your password');
         } else {
           processInserDatabase();
         }
@@ -240,6 +246,12 @@ class _RegisterState extends State<Register> {
             password == null ||
             password.isEmpty) {
           normalDialog(context, 'No Info', 'Please fill your information');
+        }else if(password != confPwd){
+          setState(() {
+            password = null;
+            confPwd = null;
+          });
+          normalDialog(context, 'Confirm password', 'Please check your password');
         } else {
           processInserDatabase();
         }
@@ -249,13 +261,32 @@ class _RegisterState extends State<Register> {
 
   Future<void> processInserDatabase() async {
 
-    String url = 'http://winti.pte.co.th/sample_insert.php?name=$name&email=$email&user=$user&password=$password';
+    String url = 'https://110.77.142.211/MTrackingServerVM10/register.jsp?name=$name&email=$email&user=$user&password=$password';
 
-    await Dio().get(url).then((response) {
-      if (response.toString() == 'true') {
-        Navigator.of(context).pop();
+    Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+
+    await dio.get(url).then((response) {
+      if (response.toString() == 'null') {
+          normalDialog(context, 'Register', '๊Unable to register at this time. Please try again later');
       } else {
-        normalDialog(context, 'Register False', 'Please try again');
+
+        Map<String, dynamic> map = json.decode(response.toString());
+        bool success = map['SUCCESS'];
+        String msg = map['MESSAGE'];
+
+        
+        if (success) { 
+
+          toStepPopDialog(context, 'Register', msg);
+          //return to login page
+        }else{
+          normalDialog(context, 'Register', msg);
+        }
       }
     });
   }
@@ -265,7 +296,7 @@ class _RegisterState extends State<Register> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Register'),
-        actions: <Widget>[registerButton()],
+        //actions: <Widget>[registerButton()],
         backgroundColor: MyStyle().barColor,
       ),
       body: ListView(
