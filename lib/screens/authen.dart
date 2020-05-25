@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -71,10 +72,16 @@ class _AuthenState extends State<Authen> {
   Future<void> checkAuthen() async {
     try {
       String urlAut =
-          'http://110.77.142.211/MTrackingServer/m_access/verifykey?uname=$user&password=$password';
+          'https://110.77.142.211/MTrackingServerVM10/m_access/verifykey?uname=$user&password=$password';
 
-      await Dio().post(urlAut).then((response) {
-        print('Response = $response');
+      Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+      await dio.post(urlAut).then((response) {
+        // print('Response = $response');
 
         if (response.toString() == 'null') {
           normalDialog(context, 'Password False', 'Please try again');
@@ -222,9 +229,9 @@ class _AuthenState extends State<Authen> {
             style: TextStyle(
               color: MyStyle().txtColor,
             ),
-          )
-          //SizedBox(width: 5.0),
-          //signUpButton(),
+          ),
+          // SizedBox(width: 5.0),
+          // signUpButton(),
         ],
       ),
       width: 250.0,

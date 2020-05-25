@@ -47,10 +47,12 @@ class _UploadFormState extends State<UploadForm> {
   FocusNode _focusKm = FocusNode();
   FocusNode _focusJobDetail = FocusNode();
   FocusNode _focusCaption = FocusNode();
+  FocusNode _focusLat = FocusNode();
+  FocusNode _focusLon = FocusNode();
 
   List<ActivityModel> listActModel = List();
   List<String> actItems = List();
-  ProgressDialog pr;
+  ProgressDialog pr, rf;
 
   // Method
   @override
@@ -95,10 +97,15 @@ class _UploadFormState extends State<UploadForm> {
     }
 
     String urlActList =
-        "http://110.77.142.211/MTrackingServer/actlist.jsp?pid=${widget.projId}&accesskey=${accesskey}";
+        "https://110.77.142.211/MTrackingServerVM10/actlist.jsp?pid=${widget.projId}&accesskey=${accesskey}";
 
-    // print('URL = $urlActList');
-    Response response = await Dio().get(urlActList);
+    Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+    Response response = await dio.get(urlActList);
 
     if (response != null) {
       String result = response.data;
@@ -208,6 +215,8 @@ class _UploadFormState extends State<UploadForm> {
     _focusKm.unfocus();
     _focusJobDetail.unfocus();
     _focusCaption.unfocus();
+    _focusLat.unfocus();
+    _focusLon.unfocus();
   }
 
   Widget cameraButton() {
@@ -282,6 +291,8 @@ class _UploadFormState extends State<UploadForm> {
       markers: myMarker(),
       mapType: MapType.normal,
       initialCameraPosition: cameraPosition,
+      myLocationButtonEnabled: true,
+      myLocationEnabled: true,
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
         new Factory<OneSequenceGestureRecognizer>(
           () => new EagerGestureRecognizer(),
@@ -312,6 +323,7 @@ class _UploadFormState extends State<UploadForm> {
           txtCtrlLat.text = latStr.trim();
           lat = double.parse(latStr.trim());
         },
+        focusNode: _focusLat,
         decoration: InputDecoration(hintText: 'latitude : '),
         controller: txtCtrlLat,
       ),
@@ -326,8 +338,38 @@ class _UploadFormState extends State<UploadForm> {
           txtCtrlLng.text = lngStr.trim();
           lng = double.parse(lngStr.trim());
         },
+        focusNode: _focusLon,
         decoration: InputDecoration(hintText: 'longitude : '),
         controller: txtCtrlLng,
+      ),
+    );
+  }
+
+  Widget getLocationButton() {
+    return ButtonTheme(
+      height: 20,
+      child: RaisedButton(
+        color: Colors.blue.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        child: Text(
+         'Get Current Location',
+         style: TextStyle(
+           color: Colors.white,
+          ),
+        ),
+        onPressed: () {
+          clearFocus();
+          rf.show();
+
+          Future.delayed(Duration(seconds: 1)).then((value) {
+            findLatLng();
+            myMarker();
+
+            if (rf.isShowing()) {
+              rf.hide();
+            }
+          });
+        },
       ),
     );
   }
@@ -335,6 +377,7 @@ class _UploadFormState extends State<UploadForm> {
   Widget uploadButton() {
     return RaisedButton(
       color: MyStyle().txtColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Text(
         'Upload',
         style: TextStyle(
@@ -360,7 +403,7 @@ class _UploadFormState extends State<UploadForm> {
   }
 
   Future<void> insertDataToServer() async {
-    String url = 'http://110.77.142.211/MTrackingServer/m_upload/saveimg';
+    String url = 'https://110.77.142.211/MTrackingServerVM10/m_upload/saveimg';
 
     var now = new DateTime.now();
     var formatter = new DateFormat('yyyy-MM-dd_Hms');
@@ -398,8 +441,15 @@ class _UploadFormState extends State<UploadForm> {
       */
 
       FormData formData = FormData.from(map);
-      await Dio().post(url, data: formData).then((response) {
-        print('response : $response');
+
+      Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+      await dio.post(url, data: formData).then((response) {
+        // print('response : $response');
         completeDialog('อัพโหลดข้อมูลแล้ว', 'ต้องการเพิ่มรูปถ่ายอีกหรือไม่?');
       });
     } catch (e) {}
@@ -408,6 +458,7 @@ class _UploadFormState extends State<UploadForm> {
   Widget saveButton() {
     return RaisedButton(
       color: MyStyle().txtColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Text(
         'Save',
         style: TextStyle(
@@ -522,10 +573,11 @@ class _UploadFormState extends State<UploadForm> {
             height: 50.0,
           ),
           showMap(),
+          getLocationButton(),
           latForm(),
           lngForm(),
           SizedBox(
-            height: 50.0,
+            height: 30.0,
           ),
           showActionButton(),
           SizedBox(
@@ -539,9 +591,24 @@ class _UploadFormState extends State<UploadForm> {
   @override
   Widget build(BuildContext context) {
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
+    rf = ProgressDialog(context, type: ProgressDialogType.Normal);
 
     pr.style(
       message: 'Uploading data...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+      progress: 0.0,
+      maxProgress: 100.0,
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
+
+    rf.style(
+      message: 'Refreshing data...',
       borderRadius: 10.0,
       backgroundColor: Colors.white,
       elevation: 10.0,

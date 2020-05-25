@@ -79,9 +79,15 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
     }
 
     String urlDmgList =
-        "http://110.77.142.211/MTrackingServer/rd_dmg_cate_drr.jsp?accesskey=${accesskey}";
+        "https://110.77.142.211/MTrackingServerVM10/rd_dmg_cate_drr.jsp?accesskey=${accesskey}";
 
-    Response response = await Dio().get(urlDmgList);
+    Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+    Response response = await dio.get(urlDmgList);
 
     if (response != null) {
       String result = response.data;
@@ -363,7 +369,7 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
   }
 
   Future<void> insertDataToServer() async {
-    String url = 'http://110.77.142.211/MTrackingServer/m_upload/saveimg';
+    String url = 'https://110.77.142.211/MTrackingServerVM10/m_upload/saveimg';
 
     var now = new DateTime.now();
     var formatter = new DateFormat('yyyy-MM-dd_Hms');
@@ -405,7 +411,14 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
       // print("snaptime : " + map['snaptime']);
 
       FormData formData = FormData.from(map);
-      await Dio().post(url, data: formData).then((response) {
+
+      Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+      await dio.post(url, data: formData).then((response) {
         print('response : $response');
         completeDialog('อัพโหลดข้อมูลแล้ว', 'ต้องการเพิ่มรูปถ่ายอีกหรือไม่?');
       });

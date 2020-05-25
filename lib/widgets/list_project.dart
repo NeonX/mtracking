@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:mtracking/screens/fm_survey_rd_dmg_drr.dart';
 import 'package:mtracking/screens/upload_form.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/search_dialog.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ListProject extends StatefulWidget {
@@ -22,6 +24,7 @@ class _ListProjectState extends State<ListProject> {
   // Field
   List<ProjectModel> listProjectModel = List();
   String accesskey, provname, amphname, provdisp, amphdisp;
+  ProgressDialog pr;
 
   // Method
 
@@ -44,15 +47,36 @@ class _ListProjectState extends State<ListProject> {
     });
   }
 
+  Future<void> refreshProjectList() async {
+    pr.show();
+
+    Future.delayed(Duration(seconds: 3)).then((value) async {
+      await readData();
+   
+      if (pr.isShowing()) {
+        pr.hide();
+      }
+    });
+  }
+
   Future<void> readData() async {
     if (listProjectModel.length > 0) {
-      listProjectModel.clear();
+      setState(() {
+        listProjectModel.clear();
+      });
     }
 
     String urlProjList =
-        "http://110.77.142.211/MTrackingServer/projlist.jsp?onlyprg=t&provname=$provname&amphname=$amphname&accesskey=$accesskey";
+        "https://110.77.142.211/MTrackingServerVM10/projlist.jsp?onlyprg=t&provname=$provname&amphname=$amphname&accesskey=$accesskey";
 
-    Response response = await Dio().get(urlProjList);
+    
+    Dio dio = new Dio();
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+      client.badCertificateCallback = (X509Certificate cert, String host, int port){
+        return true;
+      };
+    };
+    Response response = await dio.get(urlProjList);
 
     if (response != null) {
       String result = response.data;
@@ -118,23 +142,16 @@ class _ListProjectState extends State<ListProject> {
                       // Scaffold.of(context).showSnackBar(SnackBar(content: Text(projectModel.prjName)));
                       MaterialPageRoute materialPageRoute = MaterialPageRoute(
                           builder: (BuildContext buildContext) {
-                        if(projectModel.jobTypeId.compareTo('1') == 0){
-
-                            return UploadForm(projectModel.prjId,
+                        if (projectModel.jobTypeId.compareTo('1') == 0) {
+                          return UploadForm(projectModel.prjId,
                               projectModel.prjName, projectModel.jobTypeId);
-
-                        }else if(projectModel.jobTypeId.compareTo('2') == 0){
-
-                            return SurveyRdDmgDoh(projectModel.prjId,
-                              projectModel.prjName, projectModel.jobTypeId); 
-
-                        }else if(projectModel.jobTypeId.compareTo('8') == 0){
-
-                            return SurveyRdDmgDrr(projectModel.prjId,
+                        } else if (projectModel.jobTypeId.compareTo('2') == 0) {
+                          return SurveyRdDmgDoh(projectModel.prjId,
                               projectModel.prjName, projectModel.jobTypeId);
-
+                        } else if (projectModel.jobTypeId.compareTo('8') == 0) {
+                          return SurveyRdDmgDrr(projectModel.prjId,
+                              projectModel.prjName, projectModel.jobTypeId);
                         }
-                        
                       });
                       Navigator.of(context).push(materialPageRoute);
                     });
@@ -171,29 +188,55 @@ class _ListProjectState extends State<ListProject> {
     );
   }
 
+  Widget refreshButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Container(
+          margin: EdgeInsets.only(right: 15.0, bottom: 18.0),
+          child: FloatingActionButton(
+            heroTag: "refreshBtn",
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.red,
+            child: Icon(Icons.refresh),
+            onPressed: () {
+              refreshProjectList();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget searchButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Container(
+          margin: EdgeInsets.only(right: 15.0, bottom: 15.0),
+          child: FloatingActionButton(
+            heroTag: "searchBtn",
+            child: Icon(Icons.search),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return SearchDialog(notifyParent: refresh);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget showButton() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(right: 15.0, bottom: 15.0),
-              child: FloatingActionButton(
-                child: Icon(Icons.search),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return SearchDialog(notifyParent: refresh);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+        refreshButton(),
+        searchButton(),
       ],
     );
   }
@@ -218,7 +261,7 @@ class _ListProjectState extends State<ListProject> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: MyStyle().txtColor,
-              )),    
+              )),
           Text('อำเภอ : $amphdisp',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -231,11 +274,27 @@ class _ListProjectState extends State<ListProject> {
 
   @override
   Widget build(BuildContext context) {
+    pr = ProgressDialog(context, type: ProgressDialogType.Normal);
+
+    pr.style(
+      message: 'Refresh data...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+      progress: 0.0,
+      maxProgress: 100.0,
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
+
     return Stack(
       children: <Widget>[
         showListView(),
         showSearchData(),
-        searchButton(),
+        showButton(),
       ],
     );
   }

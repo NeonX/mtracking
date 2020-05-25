@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -44,9 +45,15 @@ class _ProjectSelDialogState extends State<ProjectSelDialog> {
     }
 
     String urlProjList =
-        "http://110.77.142.211/MTrackingServer/projlist.jsp?onlyprg=t&provname=$provname&amphname=$amphname&accesskey=$accesskey";
+        "https://110.77.142.211/MTrackingServerVM10/projlist.jsp?onlyprg=t&provname=$provname&amphname=$amphname&accesskey=$accesskey";
 
-    Response response = await Dio().get(urlProjList);
+    Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
+        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+          return true;
+        };
+      };
+    Response response = await dio.get(urlProjList);
 
     if (response != null) {
       String result = response.data;
