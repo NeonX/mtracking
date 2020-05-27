@@ -150,8 +150,8 @@ class _AuthenState extends State<Authen> {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         signInButton(),
-        //SizedBox(width: 5.0),
-        //signUpButton(),
+        SizedBox(width: 5.0),
+        signUpButton(),
       ],
     );
   }
