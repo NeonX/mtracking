@@ -33,9 +33,9 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs access to location when open.</string>
+    <string>Your current location will used for define survey point and search nearby survey points.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-    <string>This app needs access to location when open.</string>
+    <string>Your current location will used for define survey point and search nearby survey points.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>This is called Privacy - Photo Library Usage Description in the visual editor.</string>
 	<key>NSCameraUsageDescription</key>
