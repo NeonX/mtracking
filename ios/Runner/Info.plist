@@ -36,6 +36,17 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>Your current location will used for define survey point and search nearby survey points.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+    <string>Your current location will used for define survey point and search nearby survey points.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This is called Privacy - Photo Library Usage Description in the visual editor.</string>
+	<key>NSCameraUsageDescription</key>
+    <string>This is called Privacy - Camera Usage Description in the visual editor.</string>
+	<key>NSMicrophoneUsageDescription</key>
+    <string>This is called Privacy - Microphone Usage Description in the visual editor.</string>
+
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
