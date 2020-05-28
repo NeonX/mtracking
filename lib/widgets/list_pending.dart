@@ -67,8 +67,7 @@ class _ListPendingState extends State<ListPending> {
             ),
             onTap: () {
               TrackingModel trackingModel = listPending[index];
-              Scaffold.of(context)
-                  .showSnackBar(SnackBar(content: Text(trackingModel.tid)));
+              //Scaffold.of(context).showSnackBar(SnackBar(content: Text(trackingModel.tid)));
             });
       },
       itemCount: listPending.length,
@@ -105,8 +104,7 @@ class _ListPendingState extends State<ListPending> {
               ),
               onTap: () {
                 TrackingModel trackingModel = listPending[index];
-                Scaffold.of(context)
-                    .showSnackBar(SnackBar(content: Text(trackingModel.tid)));
+                //Scaffold.of(context).showSnackBar(SnackBar(content: Text(trackingModel.tid)));
               }),
         );
       },
