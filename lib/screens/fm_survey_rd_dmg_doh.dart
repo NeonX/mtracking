@@ -38,7 +38,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
   double lat, lng;
   var txtCtrlLat = new TextEditingController();
   var txtCtrlLng = new TextEditingController();
-  ProgressDialog pr;
+  ProgressDialog pr,rf;
   LatLng latLng;
 
   List<DmgCategoryModel> listDmgCateModel = List();
@@ -124,6 +124,8 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
 
     String urlDmgDetList =
         "https://110.77.142.211/MTrackingServerVM10/rd_dmg_det_doh.jsp?accesskey=${accesskey}&dohdmgcateid=${dmgSelected.dmgCateId}";
+
+    print(urlDmgDetList);
 
     Dio dio = new Dio();
       (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
@@ -352,6 +354,8 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
       markers: myMarker(),
       mapType: MapType.normal,
       initialCameraPosition: cameraPosition,
+      myLocationButtonEnabled: true,
+      myLocationEnabled: true,
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
         new Factory<OneSequenceGestureRecognizer>(
           () => new EagerGestureRecognizer(),
@@ -398,6 +402,35 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
         },
         decoration: InputDecoration(hintText: 'longitude : '),
         controller: txtCtrlLng,
+      ),
+    );
+  }
+
+  Widget getLocationButton() {
+    return ButtonTheme(
+      height: 20,
+      child: RaisedButton(
+        color: Colors.blue.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        child: Text(
+         'Get Current Location',
+         style: TextStyle(
+           color: Colors.white,
+          ),
+        ),
+        onPressed: () {
+          clearFocus();
+          rf.show();
+
+          Future.delayed(Duration(seconds: 1)).then((value) {
+            findLatLng();
+            myMarker();
+
+            if (rf.isShowing()) {
+              rf.hide();
+            }
+          });
+        },
       ),
     );
   }
@@ -453,23 +486,8 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
       map['snaptime'] = '$snaptime';
 
       map['sta_to'] = kmTo;
-      map['dmgcatdrrid'] = dmgSelected.dmgCateId;
-      map['dmgcatdrr_name'] = dmgSelected.dmgCateName;
-      map['dmgcatdrr_level'] = dmgLevelSelected;
-      map['dmgcatdrr_othername'] = '';
-
-      // print("userkey : " + map['userkey']);
-      // print("pid : " + map['pid']);
-      // print("jobid : " + map['jobid']);
-      // print("dmgcatdrrid : " + map['dmgcatdrrid']);
-      // print("dmgcatdrr_name : " + map['dmgcatdrr_name']);
-      // print("dmgcatdrr_level : " + map['dmgcatdrr_level']);
-      // print("sta : " + map['sta']);
-      // print("sta_to : " + map['sta_to']);
-      // print("caption : " + map['caption']);
-      // print("lat : " + map['lat']);
-      // print("long : " + map['long']);
-      // print("snaptime : " + map['snaptime']);
+      map['rdcode'] = rdCode;
+      map['dmgdetid'] = dmgDetSelected.dmgDetailId;
 
       FormData formData = FormData.from(map);
 
@@ -529,6 +547,8 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
       map[TrackingModel.columnDmgCateDrrName] = dmgSelected.dmgCateName;
       map[TrackingModel.columnDmgCateDrrLevel] = dmgLevelSelected;
       map[TrackingModel.columnDmgCateDrrOtherName] = '';
+      map[TrackingModel.columnRdCode] = rdCode;
+      map[TrackingModel.columnDmgDetId] = dmgDetSelected.dmgDetailId;
 
       TrackingModel().insert(map);
 
@@ -646,6 +666,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
             height: 50.0,
           ),
           showMap(),
+          getLocationButton(),
           latForm(),
           lngForm(),
           SizedBox(
@@ -665,6 +686,21 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
     pr.style(
       message: 'Uploading data...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+      progress: 0.0,
+      maxProgress: 100.0,
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
+
+    rf = ProgressDialog(context, type: ProgressDialogType.Normal);
+    rf.style(
+      message: 'Refreshing data...',
       borderRadius: 10.0,
       backgroundColor: Colors.white,
       elevation: 10.0,

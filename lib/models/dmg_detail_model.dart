@@ -12,7 +12,7 @@ class DmgDetailModel {
   DmgDetailModel.fromJlist(String did, List<dynamic> json) {
     dmgDetailId = did;
     dmgDetailName = json[0];
-    dmgCateId = json[1];
+    dmgCateId = json[1].toString();
   }
 
   Map<String, dynamic> toJson() {

@@ -226,6 +226,10 @@ class _ListPendingState extends State<ListPending> {
       map['dmgcatdrr_name'] = track.dmgCateDrrName;
       map['dmgcatdrr_level'] = track.dmgCateDrrLevel;
 
+      //--survey road damage doh
+      map['rdcode'] = track.rdCode;
+      map['dmgdetid'] = track.dmgDetId;
+
       FormData formData = FormData.from(map);
 
       Dio dio = new Dio();

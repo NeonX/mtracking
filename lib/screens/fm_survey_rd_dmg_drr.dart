@@ -37,7 +37,7 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
   double lat, lng;
   var txtCtrlLat = new TextEditingController();
   var txtCtrlLng = new TextEditingController();
-  ProgressDialog pr;
+  ProgressDialog pr, rf;
   LatLng latLng;
 
   List<DmgCategoryModel> listDmgCateModel = List();
@@ -291,6 +291,8 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
       markers: myMarker(),
       mapType: MapType.normal,
       initialCameraPosition: cameraPosition,
+      myLocationButtonEnabled: true,
+      myLocationEnabled: true,
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
         new Factory<OneSequenceGestureRecognizer>(
           () => new EagerGestureRecognizer(),
@@ -337,6 +339,35 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
         },
         decoration: InputDecoration(hintText: 'longitude : '),
         controller: txtCtrlLng,
+      ),
+    );
+  }
+
+  Widget getLocationButton() {
+    return ButtonTheme(
+      height: 20,
+      child: RaisedButton(
+        color: Colors.blue.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        child: Text(
+         'Get Current Location',
+         style: TextStyle(
+           color: Colors.white,
+          ),
+        ),
+        onPressed: () {
+          clearFocus();
+          rf.show();
+
+          Future.delayed(Duration(seconds: 1)).then((value) {
+            findLatLng();
+            myMarker();
+
+            if (rf.isShowing()) {
+              rf.hide();
+            }
+          });
+        },
       ),
     );
   }
@@ -580,6 +611,7 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
             height: 50.0,
           ),
           showMap(),
+          getLocationButton(),
           latForm(),
           lngForm(),
           SizedBox(
@@ -599,6 +631,21 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
     pr.style(
       message: 'Uploading data...',
+      borderRadius: 10.0,
+      backgroundColor: Colors.white,
+      elevation: 10.0,
+      insetAnimCurve: Curves.easeInOut,
+      progress: 0.0,
+      maxProgress: 100.0,
+      progressTextStyle: TextStyle(
+          color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+      messageTextStyle: TextStyle(
+          color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
+    );
+
+    rf = ProgressDialog(context, type: ProgressDialogType.Normal);
+    rf.style(
+      message: 'Refreshing data...',
       borderRadius: 10.0,
       backgroundColor: Colors.white,
       elevation: 10.0,

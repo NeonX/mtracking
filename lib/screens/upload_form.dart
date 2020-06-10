@@ -52,7 +52,8 @@ class _UploadFormState extends State<UploadForm> {
 
   List<ActivityModel> listActModel = List();
   List<String> actItems = List();
-  ProgressDialog pr, rf;
+  ProgressDialog pr;
+  ProgressDialog rf;
 
   // Method
   @override
@@ -591,8 +592,6 @@ class _UploadFormState extends State<UploadForm> {
   @override
   Widget build(BuildContext context) {
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
-    rf = ProgressDialog(context, type: ProgressDialogType.Normal);
-
     pr.style(
       message: 'Uploading data...',
       borderRadius: 10.0,
@@ -607,6 +606,7 @@ class _UploadFormState extends State<UploadForm> {
           color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600),
     );
 
+    rf = ProgressDialog(context, type: ProgressDialogType.Normal);
     rf.style(
       message: 'Refreshing data...',
       borderRadius: 10.0,

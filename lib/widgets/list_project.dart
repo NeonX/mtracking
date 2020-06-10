@@ -69,7 +69,6 @@ class _ListProjectState extends State<ListProject> {
     String urlProjList =
         "https://110.77.142.211/MTrackingServerVM10/projlist.jsp?onlyprg=t&provname=$provname&amphname=$amphname&accesskey=$accesskey";
 
-    
     Dio dio = new Dio();
     (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
       client.badCertificateCallback = (X509Certificate cert, String host, int port){
@@ -81,7 +80,7 @@ class _ListProjectState extends State<ListProject> {
     if (response != null) {
       String result = response.data;
 
-      result = result.substring(0, result.indexOf('<!'));
+      // result = result.substring(0, result.indexOf('<!'));
 
       var resJs = json.decode(result);
       // print('Result = $resJs');
