@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'M-Tracking',
       theme: ThemeData(primarySwatch: Colors.red),
       home: Authen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

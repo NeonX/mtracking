@@ -58,7 +58,7 @@ class _ProjectSelDialogState extends State<ProjectSelDialog> {
     if (response != null) {
       String result = response.data;
 
-      result = result.substring(0, result.indexOf('<!'));
+      // result = result.substring(0, result.indexOf('<!'));
 
       var resJs = json.decode(result);
       //print('Result = $resJs');
