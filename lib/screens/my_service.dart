@@ -1,13 +1,16 @@
+
 import 'package:flutter/material.dart';
 import 'package:mtracking/models/amphur.dart';
 import 'package:mtracking/models/province.dart';
 import 'package:mtracking/screens/authen.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
+import 'package:mtracking/widgets/list_offline.dart';
 import 'package:mtracking/widgets/list_pending.dart';
 import 'package:mtracking/widgets/list_project.dart';
 import 'package:mtracking/widgets/map_points.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 class MyService extends StatefulWidget {
   @override
@@ -22,12 +25,35 @@ class _MyServiceState extends State<MyService> {
   Icon cusIcon = Icon(Icons.search);
   Province provSrch;
   Amphur ampSrch;
+  String accesskey;
+  Icon signalIco = Icon(
+    Icons.wifi_tethering,
+    color: Colors.greenAccent.shade400,
+  );
 
   // Method
   @override
   void initState() {
     super.initState();
+    //iconSignal();
     checkRemember();
+
+    DataConnectionChecker().onStatusChange.listen((status) {
+      switch (status) {
+        case DataConnectionStatus.connected:
+          setState(() {
+            signalIco = Icon(Icons.wifi_tethering, color: Colors.greenAccent.shade400,);
+          });
+          //print('Data connection is available.');
+          break;
+        case DataConnectionStatus.disconnected:
+          setState(() {
+            signalIco = Icon(Icons.portable_wifi_off, color: Colors.grey);
+          });
+          //print('You are disconnected from the internet.');
+          break;
+      }
+    });
   }
 
   Widget showDrawer() {
@@ -99,10 +125,11 @@ class _MyServiceState extends State<MyService> {
             title: Text('Offline mode'),
             onTap: () {
               setState(() {
-                cusSearchBar = Text('Offline mode');
+                currentWidget = ListOffline();
+                cusSearchBar = Text('Offline Mode');
               });
               Navigator.pop(context);
-              normalDialog(context, 'Drawer Menu', 'Click menu OFFLINE MODE');
+              //normalDialog(context, 'Drawer Menu', 'Click menu OFFLINE MODE');
             },
           ),
           ListTile(
@@ -197,8 +224,26 @@ class _MyServiceState extends State<MyService> {
       return false;
     });
   }
+/*
+  Future<bool> checkConnection() async {
+    return await DataConnectionChecker().hasConnection;
+  }
 
-
+  Future<void> iconSignal() async {
+    checkConnection().then((con) {
+      setState(() {
+        if (con) {
+          signalIco = Icon(
+            Icons.wifi_tethering,
+            color: Colors.greenAccent.shade400,
+          );
+        } else {
+          signalIco = Icon(Icons.portable_wifi_off, color: Colors.grey);
+        }
+      });
+    });
+  }
+*/
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -211,7 +256,7 @@ class _MyServiceState extends State<MyService> {
           backgroundColor: MyStyle().barColor,
           actions: <Widget>[
             IconButton(
-              icon: Icon(Icons.more_vert),
+              icon: signalIco,
               onPressed: () {},
             ),
           ],

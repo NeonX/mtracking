@@ -10,6 +10,7 @@ import 'package:location/location.dart';
 import 'package:mtracking/models/activity_model.dart';
 import 'package:mtracking/models/tracking_model.dart';
 import 'package:mtracking/screens/my_service.dart';
+import 'package:mtracking/utility/app_util.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
 import 'package:progress_dialog/progress_dialog.dart';
@@ -84,12 +85,23 @@ class _UploadFormState extends State<UploadForm> {
 
   Future<void> getKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      accesskey = prefs.getString('accesskey');
-      //print('Key = $accesskey');
 
+    bool offMode = prefs.containsKey("is_offline");
+    prefs.remove("is_offline");
+
+    if (offMode) {
+      ActivityModel().getAcyByProjId(widget.projId).then((list){
+        setState(() {
+          listActModel = list;
+          actSelected = listActModel[0];
+        });
+
+        print('${list.length} ---- ${listActModel.length}');
+      });
+    } else {
+      accesskey = prefs.getString('accesskey');
       readActivity();
-    });
+    }
   }
 
   Future<void> readActivity() async {
@@ -101,11 +113,13 @@ class _UploadFormState extends State<UploadForm> {
         "https://110.77.142.211/MTrackingServerVM10/actlist.jsp?pid=${widget.projId}&accesskey=${accesskey}";
 
     Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
-          return true;
-        };
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) {
+        return true;
       };
+    };
     Response response = await dio.get(urlActList);
 
     if (response != null) {
@@ -351,11 +365,12 @@ class _UploadFormState extends State<UploadForm> {
       height: 20,
       child: RaisedButton(
         color: Colors.blue.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10.0))),
         child: Text(
-         'Get Current Location',
-         style: TextStyle(
-           color: Colors.white,
+          'Get Current Location',
+          style: TextStyle(
+            color: Colors.white,
           ),
         ),
         onPressed: () {
@@ -378,7 +393,8 @@ class _UploadFormState extends State<UploadForm> {
   Widget uploadButton() {
     return RaisedButton(
       color: MyStyle().txtColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Text(
         'Upload',
         style: TextStyle(
@@ -444,8 +460,10 @@ class _UploadFormState extends State<UploadForm> {
       FormData formData = FormData.from(map);
 
       Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) {
           return true;
         };
       };
@@ -459,7 +477,8 @@ class _UploadFormState extends State<UploadForm> {
   Widget saveButton() {
     return RaisedButton(
       color: MyStyle().txtColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Text(
         'Save',
         style: TextStyle(
@@ -623,7 +642,10 @@ class _UploadFormState extends State<UploadForm> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('รายงานความก้าวหน้าโครงการก่อสร้าง',style: TextStyle(fontSize: 16.0),),
+          title: Text(
+            'รายงานความก้าวหน้าโครงการก่อสร้าง',
+            style: TextStyle(fontSize: 16.0),
+          ),
         ),
         body: Container(
           child: Center(
