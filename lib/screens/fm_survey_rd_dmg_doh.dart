@@ -29,7 +29,6 @@ class SurveyRdDmgDoh extends StatefulWidget {
 }
 
 class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
-
   final dataKey = new GlobalKey();
   File file;
   String kmFrom, kmTo, imgCaption, rdCode;
@@ -38,8 +37,10 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
   double lat, lng;
   var txtCtrlLat = new TextEditingController();
   var txtCtrlLng = new TextEditingController();
-  ProgressDialog pr,rf;
+  ProgressDialog pr, rf;
   LatLng latLng;
+
+  bool offMode;
 
   List<DmgCategoryModel> listDmgCateModel = List();
   List<DmgDetailModel> listDmgDetailModel = List();
@@ -71,11 +72,25 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
 
   Future<void> getKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      accesskey = prefs.getString('accesskey');
+
+    accesskey = prefs.getString('accesskey');
+    offMode = prefs.containsKey("is_offline");
+    prefs.remove("is_offline");
+
+    if (offMode) {
+        DmgCategoryModel().querySql().then((dlist) {
+          setState(() {
+            listDmgCateModel = dlist;
+            dmgSelected = listDmgCateModel[0];
+          });
+        });
+    }else{
       loadDmgCate();
-    });
+    }
+    
   }
+
+ 
 
   Future<void> loadDmgCate() async {
     if (listDmgCateModel.length > 0) {
@@ -86,8 +101,10 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
         "https://110.77.142.211/MTrackingServerVM10/rd_dmg_cate_doh.jsp?accesskey=${accesskey}";
 
     Dio dio = new Dio();
-    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-      client.badCertificateCallback = (X509Certificate cert, String host, int port){
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) {
         return true;
       };
     };
@@ -109,9 +126,10 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
 
         setState(() {
           listDmgCateModel.add(dmgCateModel);
+          dmgSelected = listDmgCateModel[0];
         });
       });
-      dmgSelected = listDmgCateModel[0];
+      
       //print('End');
     }
   }
@@ -121,18 +139,19 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
       listDmgDetailModel.clear();
     }
 
-
     String urlDmgDetList =
         "https://110.77.142.211/MTrackingServerVM10/rd_dmg_det_doh.jsp?accesskey=${accesskey}&dohdmgcateid=${dmgSelected.dmgCateId}";
 
     print(urlDmgDetList);
 
     Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
-          return true;
-        };
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) {
+        return true;
       };
+    };
     Response response = await dio.get(urlDmgDetList);
 
     if (response != null) {
@@ -150,9 +169,10 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
 
         setState(() {
           listDmgDetailModel.add(dmgDetailModel);
+          dmgDetSelected = listDmgDetailModel[0];
         });
       });
-      dmgDetSelected = listDmgDetailModel[0];
+      
       //print('End');
     }
   }
@@ -211,7 +231,18 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
             onChanged: (DmgCategoryModel newVal) {
               setState(() {
                 dmgSelected = newVal;
-                loadDmgDetail();
+                if(offMode){
+                  DmgDetailModel().querySql(dmgSelected.dmgCateId.toString()).then((dtlist){
+                    setState(() {
+                      listDmgDetailModel.clear();
+                      listDmgDetailModel = dtlist;
+                      dmgDetSelected = listDmgDetailModel[0];
+                    });
+                  });
+                }else{
+                  loadDmgDetail();
+                }
+                
               });
             }));
   }
@@ -220,8 +251,8 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
     return Container(
         width: 300.0,
         child: DropdownButton(
-            items: listDmgDetailModel.map<DropdownMenuItem<DmgDetailModel>>(
-                (DmgDetailModel dmgDet) {
+            items: listDmgDetailModel
+                .map<DropdownMenuItem<DmgDetailModel>>((DmgDetailModel dmgDet) {
               return DropdownMenuItem<DmgDetailModel>(
                 value: dmgDet,
                 child: Text(dmgDet.dmgDetailName),
@@ -234,8 +265,6 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
               });
             }));
   }
-
- 
 
   Widget fromKmForm() {
     return Container(
@@ -411,11 +440,12 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
       height: 20,
       child: RaisedButton(
         color: Colors.blue.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10.0))),
         child: Text(
-         'Get Current Location',
-         style: TextStyle(
-           color: Colors.white,
+          'Get Current Location',
+          style: TextStyle(
+            color: Colors.white,
           ),
         ),
         onPressed: () {
@@ -492,8 +522,10 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
       FormData formData = FormData.from(map);
 
       Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) {
           return true;
         };
       };
@@ -648,7 +680,9 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
                 SizedBox(
                   width: 10.0,
                 ),
-                Text('ถึง', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
+                Text('ถึง',
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
                 SizedBox(
                   width: 10.0,
                 ),
