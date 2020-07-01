@@ -40,6 +40,8 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
   ProgressDialog pr, rf;
   LatLng latLng;
 
+  bool offMode;
+
   List<DmgCategoryModel> listDmgCateModel = List();
   DmgCategoryModel dmgSelected;
 
@@ -67,10 +69,20 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
 
   Future<void> getKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      accesskey = prefs.getString('accesskey');
+    accesskey = prefs.getString('accesskey');
+    offMode = prefs.containsKey("is_offline");
+    prefs.remove("is_offline");
+
+    if (offMode) {
+        DmgCategoryModel().getDmgDrr().then((dlist) {
+          setState(() {
+            listDmgCateModel = dlist;
+            dmgSelected = listDmgCateModel[0];
+          });
+        });
+    }else{
       loadDmgCate();
-    });
+    }
   }
 
   Future<void> loadDmgCate() async {

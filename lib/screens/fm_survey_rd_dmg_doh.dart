@@ -249,11 +249,12 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
 
   Widget dmgDetailList() {
     return Container(
-        width: 300.0,
+        width: 300,
         child: DropdownButton(
+            isExpanded: true,
             items: listDmgDetailModel
                 .map<DropdownMenuItem<DmgDetailModel>>((DmgDetailModel dmgDet) {
-              return DropdownMenuItem<DmgDetailModel>(
+              return DropdownMenuItem<DmgDetailModel>(  
                 value: dmgDet,
                 child: Text(dmgDet.dmgDetailName),
               );

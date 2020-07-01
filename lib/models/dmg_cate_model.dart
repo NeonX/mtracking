@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 class DmgCategoryModel {
 
   static final table = 'damage_category';
+  static final tableDrr = 'damage_category_drr';
 
   static final columnId = '_id';
   static final columnDmgName = 'damage_cate_name';
@@ -59,4 +60,15 @@ class DmgCategoryModel {
       await dbHelper.insert(table, dmg.toJson());
     });
   }
+
+  Future<List<DmgCategoryModel>> getDmgDrr() async {
+    Database db = await dbHelper.database;
+    final allRows = await db.rawQuery('SELECT * FROM $tableDrr ORDER BY $columnOrder ASC');
+
+    List<DmgCategoryModel> list = List();
+    allRows.forEach((row) => list.add(DmgCategoryModel.fromJson(row)));
+
+    return list;
+  }
+
 }
