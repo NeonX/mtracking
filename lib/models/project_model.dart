@@ -69,12 +69,12 @@ class ProjectModel {
 
   Future<int> deleteByAmphur(String aid) async {
     Database db = await dbHelper.database;
-    return await db.delete(table, where: '$columnApId = ?', whereArgs: [aid]);
+    return await db.delete(table, where: '$columnPvId is null or $columnApId = ?', whereArgs: [aid]);
   }
 
   Future<int> deleteByProvince(String pid) async {
     Database db = await dbHelper.database;
-    return await db.delete(table, where: '$columnPvId = ?', whereArgs: [pid]);
+    return await db.delete(table, where: '$columnPvId is null or $columnPvId = ?', whereArgs: [pid]);
   }
 
   Future<void> insertList(List<ProjectModel> listProject) async {

@@ -44,6 +44,8 @@ class _UploadFormState extends State<UploadForm> {
   var txtCtrlLat = new TextEditingController();
   var txtCtrlLng = new TextEditingController();
 
+  bool offMode = false;
+
   ScrollController _controller;
   FocusNode _focusKm = FocusNode();
   FocusNode _focusJobDetail = FocusNode();
@@ -86,11 +88,11 @@ class _UploadFormState extends State<UploadForm> {
   Future<void> getKey() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    bool offMode = prefs.containsKey("is_offline");
+    offMode = prefs.containsKey("is_offline");
     prefs.remove("is_offline");
 
     if (offMode) {
-      ActivityModel().getAcyByProjId(widget.projId).then((list){
+      ActivityModel().getAcyByProjId(widget.projId).then((list) {
         setState(() {
           listActModel = list;
           actSelected = listActModel[0];
@@ -546,6 +548,9 @@ class _UploadFormState extends State<UploadForm> {
             FlatButton(
               child: Text('ออก'),
               onPressed: () {
+                if(offMode){
+                  setPref("is_offline", "true");
+                }
                 MaterialPageRoute materialPageRoute = MaterialPageRoute(
                     builder: (BuildContext context) => MyService());
                 Navigator.of(context).pushAndRemoveUntil(materialPageRoute,
@@ -561,10 +566,15 @@ class _UploadFormState extends State<UploadForm> {
   }
 
   Widget showActionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[uploadButton(), saveButton()],
-    );
+    return offMode
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[saveButton()],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[uploadButton(), saveButton()],
+          );
   }
 
   Widget myContent() {

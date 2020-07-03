@@ -28,7 +28,6 @@ class SurveyRdDmgDrr extends StatefulWidget {
 }
 
 class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
-
   final dataKey = new GlobalKey();
   File file;
   String kmFrom, kmTo, imgCaption;
@@ -40,7 +39,7 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
   ProgressDialog pr, rf;
   LatLng latLng;
 
-  bool offMode;
+  bool offMode = false;
 
   List<DmgCategoryModel> listDmgCateModel = List();
   DmgCategoryModel dmgSelected;
@@ -74,13 +73,13 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
     prefs.remove("is_offline");
 
     if (offMode) {
-        DmgCategoryModel().getDmgDrr().then((dlist) {
-          setState(() {
-            listDmgCateModel = dlist;
-            dmgSelected = listDmgCateModel[0];
-          });
+      DmgCategoryModel().getDmgDrr().then((dlist) {
+        setState(() {
+          listDmgCateModel = dlist;
+          dmgSelected = listDmgCateModel[0];
         });
-    }else{
+      });
+    } else {
       loadDmgCate();
     }
   }
@@ -94,11 +93,13 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
         "https://110.77.142.211/MTrackingServerVM10/rd_dmg_cate_drr.jsp?accesskey=${accesskey}";
 
     Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
-          return true;
-        };
+    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) {
+        return true;
       };
+    };
     Response response = await dio.get(urlDmgList);
 
     if (response != null) {
@@ -360,11 +361,12 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
       height: 20,
       child: RaisedButton(
         color: Colors.blue.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10.0))),
         child: Text(
-         'Get Current Location',
-         style: TextStyle(
-           color: Colors.white,
+          'Get Current Location',
+          style: TextStyle(
+            color: Colors.white,
           ),
         ),
         onPressed: () {
@@ -456,8 +458,10 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
       FormData formData = FormData.from(map);
 
       Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) {
           return true;
         };
       };
@@ -556,10 +560,15 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
   }
 
   Widget showActionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[uploadButton(), saveButton()],
-    );
+    return offMode
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[saveButton()],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[uploadButton(), saveButton()],
+          );
   }
 
   Widget myContent() {
@@ -605,7 +614,9 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
                 SizedBox(
                   width: 10.0,
                 ),
-                Text('ถึง', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
+                Text('ถึง',
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
                 SizedBox(
                   width: 10.0,
                 ),

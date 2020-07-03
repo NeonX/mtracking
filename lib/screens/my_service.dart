@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:mtracking/models/amphur.dart';
 import 'package:mtracking/models/province.dart';
@@ -35,6 +34,7 @@ class _MyServiceState extends State<MyService> {
   @override
   void initState() {
     super.initState();
+
     //iconSignal();
     checkRemember();
 
@@ -42,7 +42,10 @@ class _MyServiceState extends State<MyService> {
       switch (status) {
         case DataConnectionStatus.connected:
           setState(() {
-            signalIco = Icon(Icons.wifi_tethering, color: Colors.greenAccent.shade400,);
+            signalIco = Icon(
+              Icons.wifi_tethering,
+              color: Colors.greenAccent.shade400,
+            );
           });
           //print('Data connection is available.');
           break;
@@ -146,6 +149,17 @@ class _MyServiceState extends State<MyService> {
 
   Future<void> checkRemember() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    bool offMode = prefs.containsKey("is_offline");
+    prefs.remove("is_offline");
+
+    if (offMode) {
+      setState(() {
+        currentWidget = ListOffline();
+        cusSearchBar = Text('Offline Mode');
+      });
+    }
+
     if (prefs.containsKey('uname')) {
       setState(() {
         user = prefs.getString('uname');
@@ -224,6 +238,7 @@ class _MyServiceState extends State<MyService> {
       return false;
     });
   }
+
 /*
   Future<bool> checkConnection() async {
     return await DataConnectionChecker().hasConnection;

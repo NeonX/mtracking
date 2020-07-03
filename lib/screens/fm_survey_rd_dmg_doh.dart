@@ -40,7 +40,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
   ProgressDialog pr, rf;
   LatLng latLng;
 
-  bool offMode;
+  bool offMode = false;
 
   List<DmgCategoryModel> listDmgCateModel = List();
   List<DmgDetailModel> listDmgDetailModel = List();
@@ -78,19 +78,16 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
     prefs.remove("is_offline");
 
     if (offMode) {
-        DmgCategoryModel().querySql().then((dlist) {
-          setState(() {
-            listDmgCateModel = dlist;
-            dmgSelected = listDmgCateModel[0];
-          });
+      DmgCategoryModel().querySql().then((dlist) {
+        setState(() {
+          listDmgCateModel = dlist;
+          dmgSelected = listDmgCateModel[0];
         });
-    }else{
+      });
+    } else {
       loadDmgCate();
     }
-    
   }
-
- 
 
   Future<void> loadDmgCate() async {
     if (listDmgCateModel.length > 0) {
@@ -129,7 +126,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
           dmgSelected = listDmgCateModel[0];
         });
       });
-      
+
       //print('End');
     }
   }
@@ -172,7 +169,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
           dmgDetSelected = listDmgDetailModel[0];
         });
       });
-      
+
       //print('End');
     }
   }
@@ -231,18 +228,19 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
             onChanged: (DmgCategoryModel newVal) {
               setState(() {
                 dmgSelected = newVal;
-                if(offMode){
-                  DmgDetailModel().querySql(dmgSelected.dmgCateId.toString()).then((dtlist){
+                if (offMode) {
+                  DmgDetailModel()
+                      .querySql(dmgSelected.dmgCateId.toString())
+                      .then((dtlist) {
                     setState(() {
                       listDmgDetailModel.clear();
                       listDmgDetailModel = dtlist;
                       dmgDetSelected = listDmgDetailModel[0];
                     });
                   });
-                }else{
+                } else {
                   loadDmgDetail();
                 }
-                
               });
             }));
   }
@@ -254,7 +252,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
             isExpanded: true,
             items: listDmgDetailModel
                 .map<DropdownMenuItem<DmgDetailModel>>((DmgDetailModel dmgDet) {
-              return DropdownMenuItem<DmgDetailModel>(  
+              return DropdownMenuItem<DmgDetailModel>(
                 value: dmgDet,
                 child: Text(dmgDet.dmgDetailName),
               );
@@ -628,10 +626,15 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
   }
 
   Widget showActionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[uploadButton(), saveButton()],
-    );
+    return offMode
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[saveButton()],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[uploadButton(), saveButton()],
+          );
   }
 
   Widget myContent() {
