@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -426,7 +427,7 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
 
     try {
       Map<String, dynamic> map = Map();
-      map['uploaded'] = UploadFileInfo(file, fileName);
+      map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
       map['userkey'] = accesskey;
       map['pid'] = widget.projId;
       map['jobid'] = widget.jobTypeId;
@@ -455,7 +456,7 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
       // print("long : " + map['long']);
       // print("snaptime : " + map['snaptime']);
 
-      FormData formData = FormData.from(map);
+      FormData formData = FormData.fromMap(map);
 
       Dio dio = new Dio();
       (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =

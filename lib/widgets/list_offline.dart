@@ -7,6 +7,8 @@ import 'package:mtracking/screens/upload_form.dart';
 import 'package:mtracking/utility/app_util.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:circular_menu/circular_menu.dart';
+import 'package:flutter_slidable_list_view/flutter_slidable_list_view.dart';
 
 class ListOffline extends StatefulWidget {
   @override
@@ -18,6 +20,9 @@ class _ListOfflineState extends State<ListOffline> {
   List<ProjectModel> listProjectModel = List();
   double percent = 0.0;
   ProgressDialog pr;
+
+  String _colorName = 'No';
+  Color _color = Colors.black;
 
   @override
   void initState() {
@@ -50,43 +55,78 @@ class _ListOfflineState extends State<ListOffline> {
     });
   }
 
-  Widget showListView() {
+  Widget showSlideListView() {
     return listProjectModel.isEmpty
         ? Center(child: Text('No data'))
         : Padding(
             padding: const EdgeInsets.only(top: 0.0),
-            child: ListView.builder(
-              itemBuilder: (BuildContext buildContext, int index) {
+            child: SlideListView(
+              itemBuilder: (bc, index) {
                 return GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.all(10),
                     child: Row(
                       children: <Widget>[
                         showImage(index),
                         showText(index),
                       ],
                     ),
-                    onTap: () {
+                  ),
+                  onTap: () {
+                    setPref("is_offline", "true");
 
-                      setPref("is_offline", "true");
-                      
-                      ProjectModel projectModel = listProjectModel[index];
-                      // Scaffold.of(context).showSnackBar(SnackBar(content: Text(projectModel.prjName)));
-                      MaterialPageRoute materialPageRoute = MaterialPageRoute(
-                          builder: (BuildContext buildContext) {
-                        if (projectModel.jobTypeId.compareTo('1') == 0) {
-                          return UploadForm(projectModel.prjId,
-                              projectModel.prjName, projectModel.jobTypeId);
-                        } else if (projectModel.jobTypeId.compareTo('2') == 0) {
-                          return SurveyRdDmgDoh(projectModel.prjId,
-                              projectModel.prjName, projectModel.jobTypeId);
-                        } else if (projectModel.jobTypeId.compareTo('8') == 0) {
-                          return SurveyRdDmgDrr(projectModel.prjId,
-                              projectModel.prjName, projectModel.jobTypeId);
-                        }
-                      });
-                      Navigator.of(context).push(materialPageRoute);
+                    ProjectModel projectModel = listProjectModel[index];
+                    // Scaffold.of(context).showSnackBar(SnackBar(content: Text(projectModel.prjName)));
+                    MaterialPageRoute materialPageRoute =
+                        MaterialPageRoute(builder: (BuildContext buildContext) {
+                      if (projectModel.jobTypeId.compareTo('1') == 0) {
+                        return UploadForm(projectModel.prjId,
+                            projectModel.prjName, projectModel.jobTypeId);
+                      } else if (projectModel.jobTypeId.compareTo('2') == 0) {
+                        return SurveyRdDmgDoh(projectModel.prjId,
+                            projectModel.prjName, projectModel.jobTypeId);
+                      } else if (projectModel.jobTypeId.compareTo('8') == 0) {
+                        return SurveyRdDmgDrr(projectModel.prjId,
+                            projectModel.prjName, projectModel.jobTypeId);
+                      }
                     });
+                    Navigator.of(context).push(materialPageRoute);
+                  },
+                  behavior: HitTestBehavior.translucent,
+                );
               },
-              itemCount: listProjectModel.length,
+              actionWidgetDelegate:
+                  ActionWidgetDelegate(2, (actionIndex, listIndex) {
+                if (actionIndex == 0) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[Icon(Icons.delete), Text('delete')],
+                  );
+                } else {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      listIndex > 5 ? Icon(Icons.close) : Icon(Icons.adjust),
+                      Text('close')
+                    ],
+                  );
+                }
+              }, (int indexInList, int index, BaseSlideItem item) {
+                if (index == 0) {
+             
+                  String pid = listProjectModel[indexInList].prjId;
+                  ProjectModel().delete(int.parse(pid));
+
+                  item.remove(); 
+                } else {
+                  item.close();
+                }
+              }, [Colors.redAccent, Colors.blueAccent]),
+              dataList: listProjectModel,
+              refreshCallback: () async {
+                await Future.delayed(Duration(seconds: 2));
+                return;
+              },
             ),
           );
   }
@@ -118,6 +158,99 @@ class _ListOfflineState extends State<ListOffline> {
     );
   }
 
+  Widget showCircularMenu() {
+    return CircularMenu(
+      alignment: Alignment.bottomRight,
+      toggleButtonColor: Colors.red,
+      toggleButtonSize: 33,
+      toggleButtonMargin: 15,
+      toggleButtonBoxShadow: [
+        BoxShadow(
+          color: Colors.red,
+          blurRadius: 2,
+        ),
+      ],
+      items: [
+        CircularMenuItem(
+            icon: Icons.delete_forever,
+            color: Colors.red.shade900,
+            onTap: () {
+              deleteAllDialog();
+            }),
+        CircularMenuItem(
+            icon: Icons.search,
+            color: Colors.blue,
+            onTap: () {
+              setState(() {
+                _color = Colors.blue;
+                _colorName = 'Blue';
+              });
+            }),
+        CircularMenuItem(
+            icon: Icons.settings,
+            color: Colors.orange,
+            onTap: () {
+              setState(() {
+                _color = Colors.orange;
+                _colorName = 'Orange';
+              });
+            }),
+      ],
+    );
+  }
+
+  Future<void> deleteAllDialog() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button for close dialog!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('ลบโครงการ'),
+          content: Text('คุณต้องการลบรายชื่อโครงการทั้งหมด ใช่หรือไม่?'),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('ใช่'),
+              onPressed: () {
+                ProjectModel().deleteAll().then((int x) {
+                  readData();
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            FlatButton(
+              child: Text('ไม่'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget deleteAllButton() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(right: 15.0, bottom: 15.0),
+              child: FloatingActionButton(
+                child: Icon(Icons.delete_forever),
+                onPressed: () {
+                  deleteAllDialog();
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
@@ -139,8 +272,10 @@ class _ListOfflineState extends State<ListOffline> {
     return Stack(
       children: <Widget>[
         //showSearchData(),
-        showListView(),
+        showSlideListView(),
         //buildSpeedDial(),
+        //showCircularMenu() ,
+        deleteAllButton(),
       ],
     );
   }

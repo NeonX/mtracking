@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/adapter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -434,7 +435,8 @@ class _UploadFormState extends State<UploadForm> {
 
     try {
       Map<String, dynamic> map = Map();
-      map['uploaded'] = UploadFileInfo(file, fileName);
+      
+      map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
       map['userkey'] = accesskey;
       map['pid'] = widget.projId;
       map['actid'] = actSelected.actId;
@@ -459,7 +461,7 @@ class _UploadFormState extends State<UploadForm> {
       print("snaptime : " + map['snaptime']);
       */
 
-      FormData formData = FormData.from(map);
+      FormData formData = FormData.fromMap(map);
 
       Dio dio = new Dio();
       (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =

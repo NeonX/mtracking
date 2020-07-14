@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -206,7 +207,7 @@ class _ListPendingState extends State<ListPending> {
       File file = new File(track.imgPath);
 
       Map<String, dynamic> map = Map();
-      map['uploaded'] = UploadFileInfo(file, fileName);
+      map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
       map['userkey'] = accesskey;
       map['pid'] = track.projId;
       map['actid'] = track.actId;
@@ -228,7 +229,7 @@ class _ListPendingState extends State<ListPending> {
       map['rdcode'] = track.rdCode;
       map['dmgdetid'] = track.dmgDetId;
 
-      FormData formData = FormData.from(map);
+      FormData formData = FormData.fromMap(map);
 
       Dio dio = new Dio();
       (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){

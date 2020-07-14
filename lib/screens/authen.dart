@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mtracking/screens/my_service.dart';
@@ -80,6 +81,7 @@ class _AuthenState extends State<Authen> {
           return true;
         };
       };
+
       await dio.post(urlAut).then((response) {
         // print('Response = $response');
 

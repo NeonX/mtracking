@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mtracking/models/amphur.dart';
+import 'package:mtracking/models/project_model.dart';
 import 'package:mtracking/models/province.dart';
 import 'package:mtracking/screens/authen.dart';
 import 'package:mtracking/utility/my_style.dart';
@@ -30,10 +31,14 @@ class _MyServiceState extends State<MyService> {
     color: Colors.greenAccent.shade400,
   );
 
+  IconButton appAction ;
+
   // Method
   @override
   void initState() {
     super.initState();
+
+    
 
     //iconSignal();
     checkRemember();
@@ -57,6 +62,11 @@ class _MyServiceState extends State<MyService> {
           break;
       }
     });
+
+    appAction = IconButton(
+              icon: signalIco,
+              onPressed: () {},
+            );
   }
 
   Widget showDrawer() {
@@ -94,6 +104,7 @@ class _MyServiceState extends State<MyService> {
                 currentWidget = ListProject();
                 cusSearchBar = Text('Project List');
               });
+              //iconBar();
               Navigator.pop(context);
               //normalDialog(context, 'Drawer Menu', 'Click menu PROJECT LIST');
             },
@@ -106,7 +117,7 @@ class _MyServiceState extends State<MyService> {
                 currentWidget = ListPending();
                 cusSearchBar = Text('Pending Upload');
               });
-
+              //iconBar();
               Navigator.pop(context);
               //normalDialog(context, 'Drawer Menu', 'Click menu PROJECT LIST');
             },
@@ -119,6 +130,7 @@ class _MyServiceState extends State<MyService> {
                 currentWidget = MapPoints();
                 cusSearchBar = Text('View Map');
               });
+              //iconBar();
               Navigator.pop(context);
               //normalDialog(context, 'Drawer Menu', 'Click menu VIEW MAP');
             },
@@ -131,6 +143,7 @@ class _MyServiceState extends State<MyService> {
                 currentWidget = ListOffline();
                 cusSearchBar = Text('Offline Mode');
               });
+              //iconBar();
               Navigator.pop(context);
               //normalDialog(context, 'Drawer Menu', 'Click menu OFFLINE MODE');
             },
@@ -259,8 +272,58 @@ class _MyServiceState extends State<MyService> {
     });
   }
 */
+
+  Future<void> iconBar() async {
+      setState(() {
+        if (cusSearchBar.toString() == 'Text("Offline Mode")') {
+          appAction = IconButton(
+            icon: Icon(Icons.delete_forever, color: Colors.white),
+            onPressed: () {
+              deleteAllDialog();
+            },
+          );
+        } else {
+          appAction = IconButton(
+              icon: signalIco,
+              onPressed: () {},
+            );
+        }
+      });
+  }
+
+  Future<void> deleteAllDialog() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button for close dialog!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('ลบโครงการ'),
+          content: Text('คุณต้องการลบรายชื่อโครงการทั้งหมด ใช่หรือไม่?'),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('ใช่'),
+              onPressed: () {
+                ProjectModel().deleteAll().then((int x){
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            FlatButton(
+              child: Text('ไม่'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    
+            
     return WillPopScope(
       onWillPop: () async {
         return false;
@@ -270,10 +333,7 @@ class _MyServiceState extends State<MyService> {
           title: cusSearchBar,
           backgroundColor: MyStyle().barColor,
           actions: <Widget>[
-            IconButton(
-              icon: signalIco,
-              onPressed: () {},
-            ),
+            appAction,
           ],
         ),
         drawer: showDrawer(),
