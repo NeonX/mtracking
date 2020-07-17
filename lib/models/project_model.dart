@@ -95,7 +95,7 @@ class ProjectModel {
   Future<List<ProjectModel>> querySql() async {
     Database db = await dbHelper.database;
     final allRows =
-        await db.rawQuery('SELECT * FROM $table ORDER BY $columnId ASC');
+        await db.rawQuery('SELECT * FROM $table WHERE $columnPjId > 0 ORDER BY $columnId ASC');
 
     List<ProjectModel> list = List();
     allRows.forEach((row) => list.add(ProjectModel.fromMap(row)));

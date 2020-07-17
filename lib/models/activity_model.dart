@@ -85,6 +85,13 @@ class ActivityModel {
     return list;
   }
 
+  Future<int> deleteById(String aid) async {
+    Database db = await dbHelper.database;
+    return await db.delete(table, where: '$columnId = ?', whereArgs: [aid]);
+
+    //return await db.rawDelete('delete from $table where $columnPrjId in ($pid) ');
+  }
+
   Future<int> deleteByProjIds(String pid) async {
     Database db = await dbHelper.database;
     //return await db.delete(table, where: '$columnPrjId in (?)', whereArgs: [pid]);

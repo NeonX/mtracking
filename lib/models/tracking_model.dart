@@ -109,7 +109,7 @@ class TrackingModel {
     return list;
   }
 
-  Future<int> delete(int id) async {
+  Future<int> delete(String id) async {
     Database db = await dbHelper.database;
     return await db.delete(table, where: '$columnId = ?', whereArgs: [id]);
   }

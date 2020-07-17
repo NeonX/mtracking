@@ -151,7 +151,7 @@ class _ListProjectState extends State<ListProject> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("บันทึกโครงการ"),
-          content: Text("ต้องการบันทึกโครงการใช่หรือไม่?"),
+          content: Text("ต้องการบันทึกโครงการสำหรับใช้งาน offline ใช่หรือไม่?"),
           actions: <Widget>[
             FlatButton(
               child: Text('ใช่'),
@@ -408,7 +408,7 @@ class _ListProjectState extends State<ListProject> {
               onTap: () {
                 confirmSaveDialog();
               },
-              label: 'บันทึกโครงการ',
+              label: 'บันทึกโครงการสำหรับ offline',
               labelStyle:
                   TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
               labelBackgroundColor: Colors.deepOrangeAccent,
@@ -420,7 +420,7 @@ class _ListProjectState extends State<ListProject> {
 
                 refreshProjectList();
               },
-              label: 'รีเฟรซ',
+              label: 'รีเฟรช',
               labelStyle:
                   TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
               labelBackgroundColor: Colors.green,

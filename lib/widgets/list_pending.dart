@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
+import 'package:mtracking/models/activity_model.dart';
 import 'package:mtracking/models/tracking_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
@@ -174,6 +176,7 @@ class _ListPendingState extends State<ListPending> {
 
   Future<void> uploadDataToServer() async {
     if (_selecteItems.length > 0) {
+      pr.style(message: "Uploading data...");
       pr.show();
 
       await Future.forEach(_selecteItems, (track) async {
@@ -186,7 +189,6 @@ class _ListPendingState extends State<ListPending> {
         readData();
         pr.hide();
       }
-
     } else {
       normalDialog(context, 'Upload', 'No data was selected');
     }
@@ -207,7 +209,8 @@ class _ListPendingState extends State<ListPending> {
       File file = new File(track.imgPath);
 
       Map<String, dynamic> map = Map();
-      map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
+      map['uploaded'] =
+          await MultipartFile.fromFile(file.path, filename: fileName);
       map['userkey'] = accesskey;
       map['pid'] = track.projId;
       map['actid'] = track.actId;
@@ -232,8 +235,10 @@ class _ListPendingState extends State<ListPending> {
       FormData formData = FormData.fromMap(map);
 
       Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = (client){
-        client.badCertificateCallback = (X509Certificate cert, String host, int port){
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) {
           return true;
         };
       };
@@ -243,16 +248,105 @@ class _ListPendingState extends State<ListPending> {
         Map<String, dynamic> res = json.decode(response.toString());
 
         if (res['SUCCESS'] == 1) {
-          int id = int.parse(track.tid);
-          TrackingModel().delete(id);
+          //int id = int.parse(track.tid);
+          TrackingModel().delete(track.tid);
 
           return true;
         }
       });
-    } catch (e) {
-      
+    } catch (e) {}
+    return false;
+  }
+
+  Widget buildSpeedDial() {
+    return Container(
+        margin: EdgeInsets.only(right: 15.0, bottom: 15.0),
+        child: SpeedDial(
+          animatedIcon: AnimatedIcons.menu_close,
+          animatedIconTheme: IconThemeData(size: 22.0),
+          // child: Icon(Icons.add),
+          onOpen: () => print('OPENING DIAL'),
+          onClose: () => print('DIAL CLOSED'),
+          visible: true,
+          curve: Curves.bounceIn,
+          children: [
+            SpeedDialChild(
+              child: Icon(Icons.delete_forever, color: Colors.white),
+              backgroundColor: Colors.red,
+              onTap: () {
+                deleteDialog();
+              },
+              label: 'ลบข้อมูล',
+              labelStyle:
+                  TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
+              labelBackgroundColor: Colors.red,
+            ),
+            SpeedDialChild(
+              child: Icon(Icons.cloud_upload, color: Colors.white),
+              backgroundColor: Colors.blue,
+              onTap: () {
+                uploadDataToServer();
+              },
+              label: 'อัพโหลดข้อมูล',
+              labelStyle:
+                  TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
+              labelBackgroundColor: Colors.blue,
+            ),
+          ],
+        ));
+  }
+
+  Future<void> deleteDialog() async {
+    if (_selecteItems.length > 0) {
+      showDialog(
+        context: context,
+        barrierDismissible: false, // user must tap button for close dialog!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('ลบข้อมูลสำรวจ'),
+            content: Text('คุณต้องการลบข้อมูลสำรวจ ใช่หรือไม่?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('ใช่'),
+                onPressed: () {
+                  deleteData();
+                  
+                },
+              ),
+              FlatButton(
+                child: Text('ไม่'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        },
+      );
+    } else {
+      normalDialog(context, 'Delete', 'No data was selected');
     }
-     return false;
+  }
+
+  Future<void> deleteData() async {
+      Navigator.of(context).pop();
+      pr.style(message: "Deleting data...");
+      pr.show();
+
+      await Future.forEach(_selecteItems, (track) async {
+        await TrackingModel().delete(track.tid);
+        setState(() {
+          listPending.removeWhere((item) => item.tid == track.tid);
+        });
+      });
+
+      Future.delayed(Duration(seconds: 1)).then((value) async {
+        if (pr.isShowing()) {
+          //readData();
+          pr.hide();
+          
+        }
+      });
   }
 
   @override
@@ -277,7 +371,8 @@ class _ListPendingState extends State<ListPending> {
       children: <Widget>[
         //showListView(),
         showListChk(),
-        uploadButton(),
+        buildSpeedDial(),
+        //uploadButton(),
       ],
     );
   }
