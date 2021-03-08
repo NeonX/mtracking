@@ -16,6 +16,7 @@ import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_save/image_save.dart';
 
 class SurveyRdDmgDrr extends StatefulWidget {
   final String projName;
@@ -426,6 +427,8 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
     print('formatted = $formatted');
 
     try {
+      await ImageSave.saveImage(file.readAsBytesSync(), "jpg", albumName: "mtracking");
+
       Map<String, dynamic> map = Map();
       map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
       map['userkey'] = accesskey;
@@ -498,6 +501,9 @@ class _SurveyRdDmgDrrState extends State<SurveyRdDmgDrr> {
     String snaptime = now.millisecondsSinceEpoch.toString();
 
     try {
+
+      await ImageSave.saveImage(file.readAsBytesSync(), "jpg", albumName: "mtracking");
+
       Map<String, dynamic> map = Map();
 
       map[TrackingModel.columnImgPath] = file.path;

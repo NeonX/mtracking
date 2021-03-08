@@ -25,6 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   google_fonts: ^0.3.4
   image_picker: ^0.6.3+1
+  image_save: ^3.1.1
   dio: ^3.0.9
   google_maps_flutter: ^0.5.21+17
   location: ^2.3.5

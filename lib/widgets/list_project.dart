@@ -9,6 +9,7 @@ import 'package:mtracking/models/activity_model.dart';
 import 'package:mtracking/models/amphur.dart';
 import 'package:mtracking/models/project_model.dart';
 import 'package:mtracking/models/province.dart';
+import 'package:mtracking/screens/fm_general_survey.dart';
 import 'package:mtracking/screens/fm_survey_rd_dmg_doh.dart';
 import 'package:mtracking/screens/fm_survey_rd_dmg_drr.dart';
 import 'package:mtracking/screens/upload_form.dart';
@@ -267,6 +268,9 @@ class _ListProjectState extends State<ListProject> {
                               projectModel.prjName, projectModel.jobTypeId);
                         } else if (projectModel.jobTypeId.compareTo('8') == 0) {
                           return SurveyRdDmgDrr(projectModel.prjId,
+                              projectModel.prjName, projectModel.jobTypeId);
+                        }else if (projectModel.jobTypeId.compareTo('4') == 0) {
+                          return GeneralSurvey(projectModel.prjId,
                               projectModel.prjName, projectModel.jobTypeId);
                         }
                       });

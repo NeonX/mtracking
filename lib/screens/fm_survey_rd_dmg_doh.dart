@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_save/image_save.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:mtracking/models/dmg_cate_model.dart';
@@ -562,6 +563,7 @@ class _SurveyRdDmgDohState extends State<SurveyRdDmgDoh> {
     String snaptime = now.millisecondsSinceEpoch.toString();
 
     try {
+      await ImageSave.saveImage(file.readAsBytesSync(), "jpg", albumName: "mtracking");
       Map<String, dynamic> map = Map();
 
       map[TrackingModel.columnImgPath] = file.path;

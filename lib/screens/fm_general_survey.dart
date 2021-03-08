@@ -1,70 +1,57 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
+
+import 'dart:io';
+
 import 'package:dio/adapter.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_save/image_save.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart';
-import 'package:mtracking/models/activity_model.dart';
 import 'package:mtracking/models/tracking_model.dart';
-import 'package:mtracking/screens/my_service.dart';
-import 'package:mtracking/utility/app_util.dart';
 import 'package:mtracking/utility/my_style.dart';
 import 'package:mtracking/utility/normal_dialog.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:image_save/image_save.dart';
 
-class UploadForm extends StatefulWidget {
+import 'my_service.dart';
+
+class GeneralSurvey extends StatefulWidget {
+
   final String projName;
   final String projId;
   final String jobTypeId;
 
   @override
-  _UploadFormState createState() => _UploadFormState();
+  _GeneralSurveyState createState() => _GeneralSurveyState();
 
-  // UploadForm({Key key, this.projName}) : super (key : key);
-  UploadForm(this.projId, this.projName, this.jobTypeId);
+  GeneralSurvey(this.projId, this.projName, this.jobTypeId);
 }
 
-class _UploadFormState extends State<UploadForm> {
-  // Field
+class _GeneralSurveyState extends State<GeneralSurvey> {
+ 
+  bool offMode = false;
   final dataKey = new GlobalKey();
-
-  ActivityModel activityModel;
-  ActivityModel actSelected;
   String accesskey;
-  File file;
-  String km, jobDetail, imgCaption;
-  LatLng latLng;
+  String topic, info1, info2, imgCaption;
+  ScrollController _controller;
+  FocusNode _focusTopic = FocusNode();
+  FocusNode _focusInfo1 = FocusNode();
+  FocusNode _focusInfo2 = FocusNode();
+  FocusNode _focusCaption = FocusNode();
   double lat, lng;
+  LatLng latLng;
+  ProgressDialog pr, rf;
+  File file;
+
   var txtCtrlLat = new TextEditingController();
   var txtCtrlLng = new TextEditingController();
 
-  bool offMode = false;
-
-  ScrollController _controller;
-  FocusNode _focusKm = FocusNode();
-  FocusNode _focusJobDetail = FocusNode();
-  FocusNode _focusCaption = FocusNode();
-  FocusNode _focusLat = FocusNode();
-  FocusNode _focusLon = FocusNode();
-
-  List<ActivityModel> listActModel = List();
-  List<String> actItems = List();
-  ProgressDialog pr;
-  ProgressDialog rf;
-
-  // Method
   @override
   void initState() {
-    _controller = ScrollController();
     super.initState();
     getKey();
     findLatLng();
@@ -78,76 +65,6 @@ class _UploadFormState extends State<UploadForm> {
       txtCtrlLat.text = lat.toString();
       txtCtrlLng.text = lng.toString();
     });
-
-    // Duration duration = Duration(seconds: 10);
-    // await Timer(duration, () {
-    //   setState(() {
-    //     lat = 13.685514;
-    //     lng = 100.567656;
-    //   });
-    // });
-  }
-
-  Future<void> getKey() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    offMode = prefs.containsKey("is_offline");
-    prefs.remove("is_offline");
-
-    if (offMode) {
-      ActivityModel().getAcyByProjId(widget.projId).then((list) {
-        setState(() {
-          listActModel = list;
-          actSelected = listActModel[0];
-        });
-
-        print('${list.length} ---- ${listActModel.length}');
-      });
-    } else {
-      accesskey = prefs.getString('accesskey');
-      readActivity();
-    }
-  }
-
-  Future<void> readActivity() async {
-    if (listActModel.length > 0) {
-      listActModel.clear();
-    }
-
-    String urlActList =
-        "https://110.77.142.211/MTrackingServerVM10/actlist.jsp?pid=${widget.projId}&accesskey=${accesskey}";
-
-    Dio dio = new Dio();
-    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-        (client) {
-      client.badCertificateCallback =
-          (X509Certificate cert, String host, int port) {
-        return true;
-      };
-    };
-    Response response = await dio.get(urlActList);
-
-    if (response != null) {
-      String result = response.data;
-
-      var resJs = json.decode(result);
-      // print('Result = $resJs');
-
-      Map<String, dynamic> act_ls = resJs['ACTIVITY'];
-
-      act_ls.forEach((k, v) {
-        // print('$k: $v');
-
-        ActivityModel activityModel = ActivityModel.fromJlist(k, v);
-
-        // print(activityModel.actId + ' ==>> ' + activityModel.actName);
-        setState(() {
-          listActModel.add(activityModel);
-        });
-      });
-      actSelected = listActModel[0];
-      //print('End');
-    }
   }
 
   Future<LocationData> findLocationData() async {
@@ -157,13 +74,18 @@ class _UploadFormState extends State<UploadForm> {
     } catch (e) {}
   }
 
-  Set<Marker> myMarker() {
-    return <Marker>[
-      Marker(
-        position: latLng,
-        markerId: MarkerId('myPosition'),
-      ),
-    ].toSet();
+  Future<void> getKey() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    accesskey = prefs.getString('accesskey');
+    offMode = prefs.containsKey("is_offline");
+    prefs.remove("is_offline");
+
+    if (offMode) {
+      
+    } else {
+
+    }
   }
 
   Widget currentProjSelected() {
@@ -176,47 +98,41 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
-  Widget activityList() {
-    return Container(
-        width: 300.0,
-        child: DropdownButton(
-            items: listActModel
-                .map<DropdownMenuItem<ActivityModel>>((ActivityModel act) {
-              return DropdownMenuItem<ActivityModel>(
-                value: act,
-                child: Text(act.actName),
-              );
-            }).toList(),
-            value: actSelected,
-            onChanged: (ActivityModel newVal) {
-              setState(() {
-                actSelected = newVal;
-              });
-            }));
-  }
-
-  Widget kmInputForm() {
+  Widget topicForm() {
     return Container(
       width: 300.0,
       child: TextField(
-        focusNode: _focusKm,
+        focusNode: _focusTopic,
         onChanged: (String string) {
-          km = string.trim();
+          topic = string.trim();
         },
-        decoration: InputDecoration(hintText: 'ตำแหน่ง กม. : '),
+        decoration: InputDecoration(hintText: 'ชื่อ/หัวข้อ/โครงการย่อย : '),
       ),
     );
   }
 
-  Widget jobDetailForm() {
+  Widget info1Form() {
     return Container(
       width: 300.0,
       child: TextField(
-        focusNode: _focusJobDetail,
+        focusNode: _focusInfo1,
         onChanged: (String string) {
-          jobDetail = string.trim();
+          info1 = string.trim();
         },
-        decoration: InputDecoration(hintText: 'รายละเอียดงาน : '),
+        decoration: InputDecoration(hintText: 'Info 1 : '),
+      ),
+    );
+  }
+
+  Widget info2Form() {
+    return Container(
+      width: 300.0,
+      child: TextField(
+        focusNode: _focusInfo2,
+        onChanged: (String string) {
+          info2 = string.trim();
+        },
+        decoration: InputDecoration(hintText: 'Info 2 : '),
       ),
     );
   }
@@ -231,14 +147,6 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
-  void clearFocus() {
-    _focusKm.unfocus();
-    _focusJobDetail.unfocus();
-    _focusCaption.unfocus();
-    _focusLat.unfocus();
-    _focusLon.unfocus();
-  }
-
   Widget cameraButton() {
     return IconButton(
         icon: Icon(
@@ -249,19 +157,6 @@ class _UploadFormState extends State<UploadForm> {
           clearFocus();
           getPhoto(ImageSource.camera);
         });
-  }
-
-  Widget galleryButton() {
-    return IconButton(
-      icon: Icon(
-        Icons.add_photo_alternate,
-        size: 50.0,
-      ),
-      onPressed: () {
-        clearFocus();
-        getPhoto(ImageSource.gallery);
-      },
-    );
   }
 
   Future<void> getPhoto(ImageSource imageSource) async {
@@ -278,6 +173,19 @@ class _UploadFormState extends State<UploadForm> {
         //print(file.path);
       });
     } catch (e) {}
+  }
+
+  Widget galleryButton() {
+    return IconButton(
+      icon: Icon(
+        Icons.add_photo_alternate,
+        size: 50.0,
+      ),
+      onPressed: () {
+        clearFocus();
+        getPhoto(ImageSource.gallery);
+      },
+    );
   }
 
   Widget showButton() {
@@ -297,6 +205,19 @@ class _UploadFormState extends State<UploadForm> {
         },
         decoration: InputDecoration(hintText: 'คำบรรยายภาพ : '),
       ),
+    );
+  }
+
+  Widget showMap() {
+    return Container(
+      padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height * 0.5,
+      child: lat == null
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : showDetailMap(),
     );
   }
 
@@ -322,47 +243,13 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
-  Widget showMap() {
-    return Container(
-      padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.5,
-      child: lat == null
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : showDetailMap(),
-    );
-  }
-
-  Widget latForm() {
-    return Container(
-      width: 300.0,
-      child: TextField(
-        onChanged: (String latStr) {
-          txtCtrlLat.text = latStr.trim();
-          lat = double.parse(latStr.trim());
-        },
-        focusNode: _focusLat,
-        decoration: InputDecoration(hintText: 'latitude : '),
-        controller: txtCtrlLat,
+  Set<Marker> myMarker() {
+    return <Marker>[
+      Marker(
+        position: latLng,
+        markerId: MarkerId('myPosition'),
       ),
-    );
-  }
-
-  Widget lngForm() {
-    return Container(
-      width: 300.0,
-      child: TextField(
-        onChanged: (String lngStr) {
-          txtCtrlLng.text = lngStr.trim();
-          lng = double.parse(lngStr.trim());
-        },
-        focusNode: _focusLon,
-        decoration: InputDecoration(hintText: 'longitude : '),
-        controller: txtCtrlLng,
-      ),
-    );
+    ].toSet();
   }
 
   Widget getLocationButton() {
@@ -395,11 +282,112 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
+  Widget latForm() {
+    return Container(
+      width: 300.0,
+      child: TextField(
+        onChanged: (String latStr) {
+          txtCtrlLat.text = latStr.trim();
+          lat = double.parse(latStr.trim());
+        },
+        decoration: InputDecoration(hintText: 'latitude : '),
+        controller: txtCtrlLat,
+      ),
+    );
+  }
+
+  Widget lngForm() {
+    return Container(
+      width: 300.0,
+      child: TextField(
+        onChanged: (String lngStr) {
+          txtCtrlLng.text = lngStr.trim();
+          lng = double.parse(lngStr.trim());
+        },
+        decoration: InputDecoration(hintText: 'longitude : '),
+        controller: txtCtrlLng,
+      ),
+    );
+  }
+
+  Widget showActionButton() {
+    return offMode
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[saveButton()],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[uploadButton(), saveButton()],
+          );
+  }
+
+  Future<void> insertDataToServer() async {
+    String url = 'https://110.77.142.211/MTrackingServerVM10/m_upload/saveimg';
+
+    var now = new DateTime.now();
+    var formatter = new DateFormat('yyyy-MM-dd_Hms');
+    String snaptime = now.millisecondsSinceEpoch.toString();
+    String formatted = formatter.format(now);
+    String fileName = 'image_$formatted.jpg';
+    print('snaptime = $snaptime');
+    print('formatted = $formatted');
+
+    try {
+      Map<String, dynamic> map = Map();
+      map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
+      map['userkey'] = accesskey;
+      map['pid'] = widget.projId;
+      map['jobid'] = widget.jobTypeId;
+      map['topic'] = topic;
+      map['info1'] = info1;
+      map['info2'] = info2;
+      map['caption'] = imgCaption; //image caption
+      map['lat'] = lat.toString();
+      map['long'] = lng.toString();
+      map['snaptime'] = '$snaptime';
+
+      FormData formData = FormData.fromMap(map);
+
+      Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) {
+          return true;
+        };
+      };
+
+      await dio.post(url, data: formData).then((response) {
+        print('response : $response');
+        completeDialog('อัพโหลดข้อมูลแล้ว', 'ต้องการเพิ่มรูปถ่ายอีกหรือไม่?');
+      });
+    } catch (e) {}
+  }
+
+  Widget saveButton() {
+    return RaisedButton(
+      color: MyStyle().txtColor,
+      child: Text(
+        'Save',
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      ),
+      onPressed: () {
+        insertDataToDB();
+
+        TrackingModel().querySql().then((list) {
+          list.forEach((o) => print(
+              o.tid + '==>> ' + o.lat + ' + ' + o.lon + ' + ' + o.imgPath));
+        });
+      },
+    );
+  }
+
   Widget uploadButton() {
     return RaisedButton(
       color: MyStyle().txtColor,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Text(
         'Upload',
         style: TextStyle(
@@ -424,109 +412,26 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
-  Future<void> insertDataToServer() async {
-    String url = 'https://110.77.142.211/MTrackingServerVM10/m_upload/saveimg';
-
-    var now = new DateTime.now();
-    var formatter = new DateFormat('yyyy-MM-dd_Hms');
-    String snaptime = now.millisecondsSinceEpoch.toString();
-    String formatted = formatter.format(now);
-    String fileName = 'image_$formatted.jpg';
-    //print('snaptime = $snaptime');
-    //print('formatted = $formatted');
-
-    try {
-
-      await ImageSave.saveImage(file.readAsBytesSync(), "jpg", albumName: "mtracking");
-
-      Map<String, dynamic> map = Map();
-      
-      map['uploaded'] = await MultipartFile.fromFile(file.path, filename:fileName);
-      map['userkey'] = accesskey;
-      map['pid'] = widget.projId;
-      map['actid'] = actSelected.actId;
-      map['jobid'] = widget.jobTypeId;
-      map['sta'] = km;
-      map['detail'] = jobDetail; //job detail
-      map['caption'] = imgCaption; //image caption
-      map['lat'] = lat.toString();
-      map['long'] = lng.toString();
-      map['snaptime'] = '$snaptime';
-
-      /*
-      print("userkey : " + map['userkey']);
-      print("pid : " + map['pid']);
-      print("actid : " + map['actid']);
-      print("jobid : " + map['jobid']);
-      print("sta : " + map['sta']);
-      print("detail : " + map['detail']);
-      print("caption : " + map['caption']);
-      print("lat : " + map['lat']);
-      print("long : " + map['long']);
-      print("snaptime : " + map['snaptime']);
-      */
-
-      FormData formData = FormData.fromMap(map);
-
-      Dio dio = new Dio();
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          (client) {
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) {
-          return true;
-        };
-      };
-      await dio.post(url, data: formData).then((response) {
-        // print('response : $response');
-        completeDialog('อัพโหลดข้อมูลแล้ว', 'ต้องการเพิ่มรูปถ่ายอีกหรือไม่?');
-      });
-    } catch (e) {}
-  }
-
-  Widget saveButton() {
-    return RaisedButton(
-      color: MyStyle().txtColor,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
-      child: Text(
-        'Save',
-        style: TextStyle(
-          color: Colors.white,
-        ),
-      ),
-      onPressed: () {
-        insertDataToDB();
-
-        TrackingModel().querySql().then((list) {
-          list.forEach((o) => print(
-              o.tid + '==>> ' + o.lat + ' + ' + o.lon + ' + ' + o.imgPath));
-        });
-      },
-    );
-  }
-
   Future<void> insertDataToDB() async {
     var now = new DateTime.now();
     String snaptime = now.millisecondsSinceEpoch.toString();
 
     try {
-
       await ImageSave.saveImage(file.readAsBytesSync(), "jpg", albumName: "mtracking");
-
       Map<String, dynamic> map = Map();
 
       map[TrackingModel.columnImgPath] = file.path;
 
       map[TrackingModel.columnPjId] = widget.projId;
       map[TrackingModel.columnPjName] = widget.projName;
-      map[TrackingModel.columnAcId] = actSelected.actId;
       map[TrackingModel.columnJtId] = widget.jobTypeId;
-      map[TrackingModel.columnSta] = km;
-      map[TrackingModel.columnJdet] = jobDetail; //job detail
       map[TrackingModel.columnCapt] = imgCaption; //image caption
       map[TrackingModel.columnLat] = lat.toString();
       map[TrackingModel.columnLon] = lng.toString();
       map[TrackingModel.columnSnapt] = '$snaptime';
+      map[TrackingModel.columnTopic] = topic;
+      map[TrackingModel.columnInfo1] = info1;
+      map[TrackingModel.columnInfo2] = info2;
 
       TrackingModel().insert(map);
 
@@ -558,9 +463,6 @@ class _UploadFormState extends State<UploadForm> {
             FlatButton(
               child: Text('ออก'),
               onPressed: () {
-                if(offMode){
-                  setPref("is_offline", "true");
-                }
                 MaterialPageRoute materialPageRoute = MaterialPageRoute(
                     builder: (BuildContext context) => MyService());
                 Navigator.of(context).pushAndRemoveUntil(materialPageRoute,
@@ -575,16 +477,11 @@ class _UploadFormState extends State<UploadForm> {
     );
   }
 
-  Widget showActionButton() {
-    return offMode
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[saveButton()],
-          )
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[uploadButton(), saveButton()],
-          );
+  void clearFocus() {
+    _focusTopic.unfocus();
+    _focusInfo1.unfocus();
+    _focusInfo2.unfocus();
+    _focusCaption.unfocus();
   }
 
   Widget myContent() {
@@ -600,9 +497,18 @@ class _UploadFormState extends State<UploadForm> {
           SizedBox(
             height: 20.0,
           ),
-          activityList(),
-          kmInputForm(),
-          jobDetailForm(),
+          topicForm(),
+          SizedBox(
+            height: 20.0,
+          ),
+          info1Form(),
+          SizedBox(
+            height: 20.0,
+          ),
+          info2Form(),
+          SizedBox(
+            height: 20.0,
+          ),
           showPhoto(),
           showButton(),
           SizedBox(
@@ -617,7 +523,7 @@ class _UploadFormState extends State<UploadForm> {
           latForm(),
           lngForm(),
           SizedBox(
-            height: 30.0,
+            height: 50.0,
           ),
           showActionButton(),
           SizedBox(
@@ -630,6 +536,7 @@ class _UploadFormState extends State<UploadForm> {
 
   @override
   Widget build(BuildContext context) {
+
     pr = ProgressDialog(context, type: ProgressDialogType.Normal);
     pr.style(
       message: 'Uploading data...',
@@ -663,7 +570,7 @@ class _UploadFormState extends State<UploadForm> {
     return Scaffold(
         appBar: AppBar(
           title: Text(
-            'รายงานความก้าวหน้าโครงการก่อสร้าง',
+            'งานสำรวจทั่วไป',
             style: TextStyle(fontSize: 16.0),
           ),
         ),

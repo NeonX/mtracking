@@ -21,6 +21,10 @@ class TrackingModel {
   static final columnRdCode = 'road_code';
   static final columnDmgDetId = 'dmg_det_id';
 
+  static final columnTopic = 'topic';
+  static final columnInfo1 = 'info1';
+  static final columnInfo2 = 'info2';
+
   static final columnDmgCateDrrId = 'dmg_cate_drr_id';
   static final columnDmgCateDrrName = 'dmg_cate_drr_name';
   static final columnDmgCateDrrLevel = 'dmg_cate_drr_level';
@@ -44,7 +48,10 @@ class TrackingModel {
       dmgCateDrrLevel,
       dmgCateDrrOtherName,
       rdCode,
-      dmgDetId;
+      dmgDetId,
+      topic,
+      info1,
+      info2;
   bool checked = false;
 
   final dbHelper = DatabaseHelper.instance;
@@ -68,7 +75,10 @@ class TrackingModel {
       this.dmgCateDrrLevel,
       this.dmgCateDrrOtherName,
       this.rdCode,
-      this.dmgDetId});
+      this.dmgDetId,
+      this.topic,
+      this.info1,
+      this.info2});
 
   TrackingModel.fromMap(Map<String, dynamic> map) {
     tid = map[columnId].toString();
@@ -90,6 +100,9 @@ class TrackingModel {
     dmgCateDrrOtherName = map[columnDmgCateDrrOtherName];
     rdCode = map[columnRdCode];
     dmgDetId = map[columnDmgDetId].toString();
+    topic = map[columnTopic].toString();
+    info1 = map[columnInfo1].toString();
+    info2 = map[columnInfo2].toString();
     // more
   }
 
